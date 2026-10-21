@@ -5,6 +5,7 @@ export const TOKENS = {
   MongoDb:             'MongoDb',
   EmailProvider:       'EmailProvider',
   EmailService:        'EmailService',
-  CompanyRepository:   'CompanyRepository',
+  CompanyRepository:    'CompanyRepository',
   StatusFetcherService: 'StatusFetcherService',
+  SnapshotRepository:   'SnapshotRepository',
 } as const;
