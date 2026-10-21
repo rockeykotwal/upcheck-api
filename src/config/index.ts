@@ -77,6 +77,21 @@ export const config = {
   auth: {
     requireEmailVerification: optionalEnv('REQUIRE_EMAIL_VERIFICATION', 'true') !== 'false',
   },
+  ai: {
+    provider: optionalEnv('AI_PROVIDER', 'ollama') as 'ollama' | 'gemini' | 'openai',
+    ollama: {
+      baseUrl: optionalEnv('OLLAMA_BASE_URL', 'http://localhost:11434'),
+      model:   optionalEnv('OLLAMA_MODEL', 'llama3'),
+    },
+    gemini: {
+      apiKey: optionalEnv('GEMINI_API_KEY', ''),
+      model:  optionalEnv('GEMINI_MODEL', 'gemini-1.5-flash'),
+    },
+    openai: {
+      apiKey: optionalEnv('OPENAI_API_KEY', ''),
+      model:  optionalEnv('OPENAI_MODEL', 'gpt-4o-mini'),
+    },
+  },
   email: {
     provider:    optionalEnv('EMAIL_PROVIDER', 'smtp') as 'smtp' | 'resend',
     from:        optionalEnv('EMAIL_FROM', 'noreply@example.com'),
