@@ -3,12 +3,12 @@ import { injectable, inject } from 'tsyringe';
 import { SignJWT, jwtVerify, type JWTPayload } from 'jose';
 import * as argon2 from 'argon2';
 import type { Redis } from 'ioredis';
-import { UserRepository } from '../repositories/UserRepository';
-import type { User } from '../models/user.schema';
+import { UserRepository } from '../../users/repositories/UserRepository';
+import type { User } from '../../users/models/user.schema';
 import type { SignupDto } from '../validators/SignupDto';
 import type { LoginDto } from '../validators/LoginDto';
-import { AppError } from '../../errors/AppError';
-import { config } from '../../config';
+import { AppError } from '../../../errors/AppError';
+import { config } from '../../../config';
 
 export type SafeUser = Omit<User, 'passwordHash'>;
 

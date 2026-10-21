@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import type { RequestHandler } from 'express';
-import { container } from '../../container';
-import { AuthService } from '../services/AuthService';
+import { container } from '../container';
+import { AuthService } from '../modules/auth/services/AuthService';
 
 const authService = container.resolve(AuthService);
 

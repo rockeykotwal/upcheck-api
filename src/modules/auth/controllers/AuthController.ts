@@ -2,12 +2,12 @@ import 'reflect-metadata';
 import { Router, Request, Response, NextFunction } from 'express';
 import { plainToInstance } from 'class-transformer';
 import { validateOrReject, ValidationError } from 'class-validator';
-import { container } from '../../container';
+import { container } from '../../../container';
 import { AuthService } from '../services/AuthService';
 import { SignupDto } from '../validators/SignupDto';
 import { LoginDto } from '../validators/LoginDto';
-import { AppError } from '../../errors/AppError';
-import { authenticate } from '../middlewares/authenticate';
+import { AppError } from '../../../errors/AppError';
+import { authenticate } from '../../../middlewares/authenticate';
 
 // ── Shared OpenAPI component definitions ──────────────────────────────────────
 /**

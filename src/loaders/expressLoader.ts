@@ -5,15 +5,15 @@ import cookieParser from 'cookie-parser';
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import { container } from '../container';
-import { UserService } from '../api/services/UserService';
-import authRouter from '../api/controllers/AuthController';
-import { authenticate } from '../api/middlewares/authenticate';
+import { UserService } from '../modules/users/services/UserService';
+import authRouter from '../modules/auth/controllers/AuthController';
+import { authenticate } from '../middlewares/authenticate';
 import { config } from '../config';
 import { corsOptions } from '../config/cors.config';
-import { requestLogger } from '../api/middlewares/requestLogger';
-import { defaultRateLimiter } from '../api/middlewares/rateLimiter';
-import { notFound } from '../api/middlewares/notFound';
-import { errorHandler } from '../api/middlewares/errorHandler';
+import { requestLogger } from '../middlewares/requestLogger';
+import { defaultRateLimiter } from '../middlewares/rateLimiter';
+import { notFound } from '../middlewares/notFound';
+import { errorHandler } from '../middlewares/errorHandler';
 import { registerRbac } from '../modules/rbac';
 
 const swaggerSpec = swaggerJsdoc({
@@ -42,9 +42,7 @@ const swaggerSpec = swaggerJsdoc({
     },
   },
   apis: [
-    './src/api/controllers/*.ts',
     './src/modules/*/controllers/*.ts',
-    './dist/api/controllers/*.js',
     './dist/modules/*/controllers/*.js',
   ],
 } as swaggerJsdoc.Options);

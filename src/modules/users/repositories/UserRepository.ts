@@ -2,10 +2,10 @@ import 'reflect-metadata';
 import { injectable, inject } from 'tsyringe';
 import { eq } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { TOKENS } from '../../container';
+import { TOKENS } from '../../../tokens';
 import { usersTable } from '../models/user.schema';
 import type { User, NewUser } from '../models/user.schema';
-import { getCache, setCache, deleteCache } from '../../cache/redis';
+import { getCache, setCache, deleteCache } from '../../../cache/redis';
 
 type Db = NodePgDatabase<Record<string, never>>;
 type UserUpdate = Partial<Pick<User, 'firstName' | 'lastName' | 'email'>>;
@@ -52,7 +52,6 @@ export class UserRepository {
       .insert(usersTable)
       .values(data)
       .returning();
-    // Non-null: INSERT … RETURNING always yields one row
     return rows[0]!;
   }
 
@@ -61,7 +60,6 @@ export class UserRepository {
 
     const rows = await this.db
       .update(usersTable)
-      // Drizzle skips undefined fields automatically
       .set({ ...data, updatedAt: new Date() })
       .where(eq(usersTable.id, id))
       .returning();

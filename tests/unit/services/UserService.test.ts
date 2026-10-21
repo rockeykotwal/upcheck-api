@@ -1,9 +1,9 @@
 import 'reflect-metadata';
 import { describe, it, expect, vi } from 'vitest';
-import { UserService } from '../../../src/api/services/UserService';
+import { UserService } from '../../../src/modules/users/services/UserService';
 import { AppError } from '../../../src/errors/AppError';
 import { createUser } from '../../factories/user.factory';
-import type { UserRepository } from '../../../src/api/repositories/UserRepository';
+import type { UserRepository } from '../../../src/modules/users/repositories/UserRepository';
 
 // ── Build UserService with mocked UserRepository ──────────────────────────────
 function buildUserService() {

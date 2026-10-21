@@ -7,7 +7,7 @@ import { RbacService } from '../services/RbacService';
 import { RoleRepository } from '../repositories/RoleRepository';
 import { CreateRoleDto } from '../validators/CreateRoleDto';
 import { PERMISSIONS } from '../models/permission.schema';
-import { authenticate } from '../../../api/middlewares/authenticate';
+import { authenticate } from '../../../middlewares/authenticate';
 import { authorize } from '../middlewares/authorize';
 import { AppError } from '../../../errors/AppError';
 

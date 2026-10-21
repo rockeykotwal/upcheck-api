@@ -1,5 +1,5 @@
 import { pgTable, uuid, timestamp, primaryKey } from 'drizzle-orm/pg-core';
-import { usersTable } from '../../../api/models/user.schema';
+import { usersTable } from '../../users/models/user.schema';
 import { rolesTable } from './role.schema';
 
 export const userRolesTable = pgTable(

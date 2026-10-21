@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { injectable, inject } from 'tsyringe';
 import { UserRepository } from '../repositories/UserRepository';
-import { AppError } from '../../errors/AppError';
+import { AppError } from '../../../errors/AppError';
 import type { User, NewUser } from '../models/user.schema';
 
 type UserUpdate = Partial<Pick<User, 'firstName' | 'lastName' | 'email'>>;
@@ -29,7 +29,6 @@ export class UserService {
   }
 
   async update(id: string, data: UserUpdate): Promise<User> {
-    // Verify existence before touching the DB
     const exists = await this.userRepository.findById(id);
     if (!exists) throw new AppError(`User "${id}" not found`, 404);
 
