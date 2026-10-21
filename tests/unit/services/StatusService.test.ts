@@ -16,7 +16,10 @@ function makeSnapshot(slug: string): StatusSnapshot {
 
 function buildService(companies: Company[], latestSnapshot: StatusSnapshot | null = null, recentSnapshots: StatusSnapshot[] = []) {
   const companiesRepo = {
-    findAll: vi.fn().mockResolvedValue(companies),
+    findAll:     vi.fn().mockResolvedValue(companies),
+    findBySlug:  vi.fn().mockImplementation((slug: string) =>
+      Promise.resolve(companies.find((c) => c.slug === slug) ?? null),
+    ),
   } as unknown as CompanyRepository;
 
   const snapshotsRepo = {
