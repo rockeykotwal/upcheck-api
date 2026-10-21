@@ -6,6 +6,8 @@ import { config } from './config';
 import { SmtpProvider }  from './modules/email/providers/SmtpProvider';
 import { ResendProvider } from './modules/email/providers/ResendProvider';
 import { EmailService }  from './modules/email/services/EmailService';
+import { CompanyRepository }    from './modules/status/repositories/CompanyRepository';
+import { StatusFetcherService } from './modules/status/services/StatusFetcherService';
 import { TOKENS } from './tokens';
 
 // Re-export so existing imports of TOKENS from this file continue to work
@@ -23,5 +25,9 @@ if (config.email.provider === 'resend') {
   container.register(TOKENS.EmailProvider, { useClass: SmtpProvider });
 }
 container.registerSingleton(TOKENS.EmailService, EmailService);
+
+// ── Status module ─────────────────────────────────────────────────────────────
+container.registerSingleton(TOKENS.CompanyRepository,    CompanyRepository);
+container.registerSingleton(TOKENS.StatusFetcherService, StatusFetcherService);
 
 export { container };

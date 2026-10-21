@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import type { Request, Response, NextFunction } from 'express';
-import { errorHandler } from '../../../src/api/middlewares/errorHandler';
+import { errorHandler } from '../../../src/middlewares/errorHandler';
 import { AppError } from '../../../src/errors/AppError';
 
 function buildMocks() {

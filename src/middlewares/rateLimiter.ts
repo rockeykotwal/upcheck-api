@@ -2,7 +2,7 @@ import rateLimit from 'express-rate-limit';
 import type { Options } from 'express-rate-limit';
 import { RedisStore } from 'rate-limit-redis';
 import type { Request, Response } from 'express';
-import { redisClient } from '../../cache/redis';
+import { redisClient } from '../cache/redis';
 
 const handler = (_req: Request, res: Response): void => {
   res.status(429).json({
@@ -23,7 +23,6 @@ const shared: Partial<Options> = {
   standardHeaders: true,
   legacyHeaders:   false,
   handler,
-  // Health endpoint is never rate-limited regardless of middleware order
   skip: (req) => req.path === '/health',
 };
 

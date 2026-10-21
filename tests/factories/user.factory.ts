@@ -1,5 +1,5 @@
-import type { User, NewUser } from '../../src/api/models/user.schema';
-import type { SafeUser } from '../../src/api/services/AuthService';
+import type { User, NewUser } from '../../src/modules/users/models/user.schema';
+import type { SafeUser } from '../../src/modules/auth/services/AuthService';
 
 const DEFAULT_PASSWORD_HASH =
   '$argon2id$v=19$m=65536,t=3,p=4$stub-salt-for-tests$stub-hash-value-for-unit-tests-only';

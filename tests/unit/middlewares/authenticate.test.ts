@@ -26,7 +26,7 @@ vi.mock('../../../src/container', () => ({
 }));
 
 // ── Import AFTER mocks ─────────────────────────────────────────────────────────
-import { authenticate } from '../../../src/api/middlewares/authenticate';
+import { authenticate } from '../../../src/middlewares/authenticate';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 async function makeValidToken(userId: string, email: string): Promise<string> {

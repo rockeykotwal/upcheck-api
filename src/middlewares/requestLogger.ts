@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { trace } from '@opentelemetry/api';
-import { logger } from '../../observability/logger';
+import { logger } from '../observability/logger';
 
 export function requestLogger(req: Request, res: Response, next: NextFunction): void {
   const start = Date.now();

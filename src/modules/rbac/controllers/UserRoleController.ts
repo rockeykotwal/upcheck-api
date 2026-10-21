@@ -6,7 +6,7 @@ import { container } from '../../../container';
 import { RbacService } from '../services/RbacService';
 import { AssignRoleDto } from '../validators/AssignRoleDto';
 import { PERMISSIONS } from '../models/permission.schema';
-import { authenticate } from '../../../api/middlewares/authenticate';
+import { authenticate } from '../../../middlewares/authenticate';
 import { authorize } from '../middlewares/authorize';
 import { AppError } from '../../../errors/AppError';
 

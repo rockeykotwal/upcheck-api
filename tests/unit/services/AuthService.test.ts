@@ -29,10 +29,10 @@ vi.mock('argon2', () => ({
 }));
 
 // ── Imports after mocks ────────────────────────────────────────────────────────
-import { AuthService } from '../../../src/api/services/AuthService';
+import { AuthService } from '../../../src/modules/auth/services/AuthService';
 import { AppError } from '../../../src/errors/AppError';
 import { createUser } from '../../factories/user.factory';
-import type { UserRepository } from '../../../src/api/repositories/UserRepository';
+import type { UserRepository } from '../../../src/modules/users/repositories/UserRepository';
 import type { Redis } from 'ioredis';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
