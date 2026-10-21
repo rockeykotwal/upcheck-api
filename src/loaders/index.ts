@@ -4,6 +4,7 @@ import { dbLoader } from './dbLoader';
 import { redisLoader } from './redisLoader';
 import { mongoLoader } from './mongoLoader';
 import { expressLoader } from './expressLoader';
+import { startStatusPollerJob } from '../jobs/statusPoller.job';
 
 export async function initLoaders(): Promise<Application> {
   // 1. Tracing must start before any instrumented I/O occurs
@@ -16,6 +17,9 @@ export async function initLoaders(): Promise<Application> {
 
   // 3. Bootstrap the Express application
   const app = expressLoader();
+
+  // 4. Start background jobs — after all infra is ready
+  startStatusPollerJob();
 
   return app;
 }
