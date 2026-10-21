@@ -78,7 +78,7 @@ export const config = {
     requireEmailVerification: optionalEnv('REQUIRE_EMAIL_VERIFICATION', 'true') !== 'false',
   },
   ai: {
-    provider: optionalEnv('AI_PROVIDER', 'ollama') as 'ollama' | 'gemini' | 'openai',
+    provider: optionalEnv('AI_PROVIDER', 'ollama') as 'ollama' | 'gemini' | 'openai' | 'claude',
     ollama: {
       baseUrl: optionalEnv('OLLAMA_BASE_URL', 'http://localhost:11434'),
       model:   optionalEnv('OLLAMA_MODEL', 'llama3'),
@@ -90,6 +90,10 @@ export const config = {
     openai: {
       apiKey: optionalEnv('OPENAI_API_KEY', ''),
       model:  optionalEnv('OPENAI_MODEL', 'gpt-4o-mini'),
+    },
+    claude: {
+      apiKey: optionalEnv('CLAUDE_API_KEY', ''),
+      model:  optionalEnv('CLAUDE_MODEL', 'claude-haiku-4-5-20251001'),
     },
   },
   email: {
