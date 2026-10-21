@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
   pull_request:
-    branches: [main]
+    branches: [main, dev]
 
 # Cancel any in-progress run on the same ref so stale builds don't queue up.
 # This is safe for CI — unlike deploys, a cancelled test run has no side effects.
@@ -89,7 +89,8 @@ jobs:
       DB_POOL_MIN:                1
       DB_POOL_MAX:                5
       REDIS_URL:                  redis://localhost:6379
-      MONGODB_URI:                mongodb://localhost:27017/myapp
+      MONGODB_URI:                mongodb://localhost:27017/upcheck_test
+      AI_PROVIDER:                ollama
       JWT_SECRET:                 test-secret-key-minimum-32-characters-long
       EMAIL_PROVIDER:             smtp
       EMAIL_FROM:                 test@example.com
