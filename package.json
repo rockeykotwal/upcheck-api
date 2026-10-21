@@ -1,7 +1,7 @@
 {
-  "name": "express-ts-drizzle-boilerplate",
-  "version": "1.0.0",
-  "description": "Production-ready Express + TypeScript + Drizzle ORM boilerplate for AWS ECS/Fargate",
+  "name": "upcheck-api",
+  "version": "0.1.0",
+  "description": "Upcheck API — live service status aggregator (Express + TypeScript + Drizzle)",
   "main": "dist/app.js",
   "scripts": {
     "dev": "node --require ts-node/register --watch src/app.ts",

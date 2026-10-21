@@ -5,7 +5,6 @@ import cookieParser from 'cookie-parser';
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import { container } from '../container';
-import { UserController } from '../api/controllers/UserController';
 import { UserService } from '../api/services/UserService';
 import authRouter from '../api/controllers/AuthController';
 import { authenticate } from '../api/middlewares/authenticate';
@@ -15,22 +14,22 @@ import { requestLogger } from '../api/middlewares/requestLogger';
 import { defaultRateLimiter } from '../api/middlewares/rateLimiter';
 import { notFound } from '../api/middlewares/notFound';
 import { errorHandler } from '../api/middlewares/errorHandler';
-import { registerRbac, PERMISSIONS, authorize } from '../modules/rbac';
+import { registerRbac } from '../modules/rbac';
 
 const swaggerSpec = swaggerJsdoc({
   definition: {
     openapi: '3.0.0',
     info: {
-      title:       'Express TypeScript API',
-      version:     '1.0.0',
-      description: 'Production-ready REST API — Express + TypeScript + Drizzle ORM',
+      title:       'Upcheck API',
+      version:     '0.1.0',
+      description: 'Upcheck — live service status aggregator API',
     },
     servers: [
       { url: `http://localhost:${config.app.port}`, description: 'Local development' },
     ],
     tags: [
-      { name: 'Auth',  description: 'Authentication' },
-      { name: 'Users', description: 'User management' },
+      { name: 'Auth',      description: 'Authentication' },
+      { name: 'Companies', description: 'Company status' },
     ],
     components: {
       securitySchemes: {
@@ -42,10 +41,11 @@ const swaggerSpec = swaggerJsdoc({
       },
     },
   },
-  // swagger-jsdoc reads @openapi JSDoc blocks from these globs at runtime
   apis: [
-    './src/api/controllers/*.ts',   // tsx dev
-    './dist/api/controllers/*.js',  // compiled prod
+    './src/api/controllers/*.ts',
+    './src/modules/*/controllers/*.ts',
+    './dist/api/controllers/*.js',
+    './dist/modules/*/controllers/*.js',
   ],
 } as swaggerJsdoc.Options);
 
@@ -82,7 +82,7 @@ export function expressLoader(): Application {
   // ── Auth routes (public — no authentication required) ─────────────────────
   app.use('/api/auth', authRouter);
 
-  // ── GET /api/users/me — must be before /:id to avoid route conflict ────────
+  // ── GET /api/users/me ──────────────────────────────────────────────────────
   const userService = container.resolve(UserService);
 
   app.get(
@@ -99,17 +99,6 @@ export function expressLoader(): Application {
       }
     },
   );
-
-  // ── Per-route auth + authorization for /api/users ─────────────────────────
-  app.get(   '/api/users',      authenticate, authorize(PERMISSIONS.USERS_READ));
-  app.get(   '/api/users/:id',  authenticate, authorize(PERMISSIONS.USERS_READ));
-  app.post(  '/api/users',      authenticate, authorize(PERMISSIONS.USERS_WRITE));
-  app.put(   '/api/users/:id',  authenticate, authorize(PERMISSIONS.USERS_WRITE));
-  app.delete('/api/users/:id',  authenticate, authorize(PERMISSIONS.USERS_DELETE));
-
-  // ── User CRUD routes ───────────────────────────────────────────────────────
-  const userController = container.resolve(UserController);
-  app.use('/api/users', userController.router());
 
   // ── RBAC module (roles, permissions, user-role assignment) ────────────────
   registerRbac(app);
