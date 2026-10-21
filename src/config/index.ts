@@ -96,6 +96,9 @@ export const config = {
       model:  optionalEnv('CLAUDE_MODEL', 'claude-haiku-4-5-20251001'),
     },
   },
+  admin: {
+    apiKey: optionalEnv('ADMIN_API_KEY', ''),
+  },
   email: {
     provider:    optionalEnv('EMAIL_PROVIDER', 'smtp') as 'smtp' | 'resend',
     from:        optionalEnv('EMAIL_FROM', 'noreply@example.com'),

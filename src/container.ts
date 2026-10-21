@@ -16,6 +16,7 @@ import { GeminiProvider }        from './modules/ai/providers/GeminiProvider';
 import { OpenAiProvider }        from './modules/ai/providers/OpenAiProvider';
 import { AiService }             from './modules/ai/services/AiService';
 import { ClaudeProvider }        from './modules/ai/providers/ClaudeProvider';
+import { AdminService }          from './modules/admin/services/AdminService';
 import { TOKENS } from './tokens';
 
 // Re-export so existing imports of TOKENS from this file continue to work
@@ -52,5 +53,8 @@ if (config.ai.provider === 'gemini') {
   container.register(TOKENS.AiProvider, { useClass: OllamaProvider });
 }
 container.registerSingleton(TOKENS.AiService, AiService);
+
+// ── Admin module ──────────────────────────────────────────────────────────────
+container.registerSingleton(TOKENS.AdminService, AdminService);
 
 export { container };

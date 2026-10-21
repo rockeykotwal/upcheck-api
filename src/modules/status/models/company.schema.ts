@@ -1,5 +1,9 @@
-import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, uuid, pgEnum } from 'drizzle-orm/pg-core';
 import type { InferSelectModel, InferInsertModel } from 'drizzle-orm';
+
+export const companyStatusEnum = pgEnum('company_status', ['active', 'paused', 'retired']);
+
+export type CompanyStatus = 'active' | 'paused' | 'retired';
 
 export const companiesTable = pgTable('companies', {
   id:            uuid('id').primaryKey().defaultRandom(),
@@ -9,6 +13,7 @@ export const companiesTable = pgTable('companies', {
   statusPageUrl: text('status_page_url').notNull(),
   provider:      text('provider').notNull().default('statuspage'),
   category:      text('category'),
+  status:        companyStatusEnum('status').notNull().default('active'),
   createdAt:     timestamp('created_at').defaultNow(),
 });
 

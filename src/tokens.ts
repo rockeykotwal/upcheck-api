@@ -12,4 +12,5 @@ export const TOKENS = {
   StatusService:         'StatusService',
   AiProvider:            'AiProvider',
   AiService:             'AiService',
+  AdminService:          'AdminService',
 } as const;
