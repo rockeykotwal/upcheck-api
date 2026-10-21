@@ -11,6 +11,10 @@ import { StatusFetcherService } from './modules/status/services/StatusFetcherSer
 import { SnapshotRepository }    from './modules/status/repositories/SnapshotRepository';
 import { StatusPollerService }   from './modules/status/services/StatusPollerService';
 import { StatusService }         from './modules/status/services/StatusService';
+import { OllamaProvider }        from './modules/ai/providers/OllamaProvider';
+import { GeminiProvider }        from './modules/ai/providers/GeminiProvider';
+import { OpenAiProvider }        from './modules/ai/providers/OpenAiProvider';
+import { AiService }             from './modules/ai/services/AiService';
 import { TOKENS } from './tokens';
 
 // Re-export so existing imports of TOKENS from this file continue to work
@@ -35,5 +39,15 @@ container.registerSingleton(TOKENS.StatusFetcherService, StatusFetcherService);
 container.registerSingleton(TOKENS.SnapshotRepository,   SnapshotRepository);
 container.registerSingleton(TOKENS.StatusPollerService,  StatusPollerService);
 container.registerSingleton(TOKENS.StatusService,        StatusService);
+
+// ── AI module ─────────────────────────────────────────────────────────────────
+if (config.ai.provider === 'gemini') {
+  container.register(TOKENS.AiProvider, { useClass: GeminiProvider });
+} else if (config.ai.provider === 'openai') {
+  container.register(TOKENS.AiProvider, { useClass: OpenAiProvider });
+} else {
+  container.register(TOKENS.AiProvider, { useClass: OllamaProvider });
+}
+container.registerSingleton(TOKENS.AiService, AiService);
 
 export { container };

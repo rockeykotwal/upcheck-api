@@ -16,6 +16,7 @@ import { notFound } from '../middlewares/notFound';
 import { errorHandler } from '../middlewares/errorHandler';
 import { registerRbac } from '../modules/rbac';
 import statusRouter from '../modules/status/controllers/StatusController';
+import aiRouter from '../modules/ai/controllers/AiController';
 
 const swaggerSpec = swaggerJsdoc({
   definition: {
@@ -83,6 +84,9 @@ export function expressLoader(): Application {
 
   // ── Status routes (public) ────────────────────────────────────────────────
   app.use('/api/status', statusRouter);
+
+  // ── AI routes (public) ────────────────────────────────────────────────────
+  app.use('/api/ai/summary', aiRouter);
 
   // ── GET /api/users/me ──────────────────────────────────────────────────────
   const userService = container.resolve(UserService);

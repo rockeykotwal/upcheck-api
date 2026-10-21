@@ -10,4 +10,6 @@ export const TOKENS = {
   SnapshotRepository:    'SnapshotRepository',
   StatusPollerService:   'StatusPollerService',
   StatusService:         'StatusService',
+  AiProvider:            'AiProvider',
+  AiService:             'AiService',
 } as const;
