@@ -17,6 +17,7 @@ import { errorHandler } from '../middlewares/errorHandler';
 import { registerRbac } from '../modules/rbac';
 import statusRouter from '../modules/status/controllers/StatusController';
 import aiRouter from '../modules/ai/controllers/AiController';
+import adminRouter from '../modules/admin/controllers/AdminController';
 
 const swaggerSpec = swaggerJsdoc({
   definition: {
@@ -87,6 +88,9 @@ export function expressLoader(): Application {
 
   // ── AI routes (public) ────────────────────────────────────────────────────
   app.use('/api/ai/summary', aiRouter);
+
+  // ── Admin routes (X-Admin-Key protected) ──────────────────────────────────
+  app.use('/api/admin', adminRouter);
 
   // ── GET /api/users/me ──────────────────────────────────────────────────────
   const userService = container.resolve(UserService);

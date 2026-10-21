@@ -48,8 +48,7 @@ export class StatusService {
   }
 
   async getDetail(slug: string): Promise<CompanyDetail | null> {
-    const companies = await this.companies.findAll();
-    const company   = companies.find((c) => c.slug === slug) ?? null;
+    const company = await this.companies.findBySlug(slug);
 
     if (!company) return null;
 
