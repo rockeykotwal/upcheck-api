@@ -1,7 +1,3 @@
----
-allowed-tools: Bash(git *), Bash(gh *)
----
-
 You are performing a full git sync: stage → commit → push → PR.
 The user's commit message (if provided) is: $ARGUMENTS
 
