@@ -7,5 +7,6 @@ export const TOKENS = {
   EmailService:        'EmailService',
   CompanyRepository:    'CompanyRepository',
   StatusFetcherService: 'StatusFetcherService',
-  SnapshotRepository:   'SnapshotRepository',
+  SnapshotRepository:    'SnapshotRepository',
+  StatusPollerService:   'StatusPollerService',
 } as const;

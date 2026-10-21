@@ -65,11 +65,11 @@ jobs:
           --health-retries 5
 
       mongodb:
-        image: mongo:8
+        image: mongo:7
         ports:
           - '27017:27017'
         options: >-
-          --health-cmd "mongosh --eval \"db.adminCommand('ping')\""
+          --health-cmd "mongosh --eval 'db.adminCommand({ping:1})' --quiet"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
