@@ -3,7 +3,8 @@ import { injectable, inject } from 'tsyringe';
 import { UserRepository } from '../repositories/UserRepository';
 import { AppError } from '../../errors/AppError';
 import type { User, NewUser } from '../models/user.schema';
-import type { UpdateUserDto } from '../validators/UpdateUserDto';
+
+type UserUpdate = Partial<Pick<User, 'firstName' | 'lastName' | 'email'>>;
 
 @injectable()
 export class UserService {
@@ -27,7 +28,7 @@ export class UserService {
     return this.userRepository.create(data);
   }
 
-  async update(id: string, data: UpdateUserDto): Promise<User> {
+  async update(id: string, data: UserUpdate): Promise<User> {
     // Verify existence before touching the DB
     const exists = await this.userRepository.findById(id);
     if (!exists) throw new AppError(`User "${id}" not found`, 404);
