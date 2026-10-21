@@ -15,6 +15,7 @@ import { OllamaProvider }        from './modules/ai/providers/OllamaProvider';
 import { GeminiProvider }        from './modules/ai/providers/GeminiProvider';
 import { OpenAiProvider }        from './modules/ai/providers/OpenAiProvider';
 import { AiService }             from './modules/ai/services/AiService';
+import { ClaudeProvider }        from './modules/ai/providers/ClaudeProvider';
 import { TOKENS } from './tokens';
 
 // Re-export so existing imports of TOKENS from this file continue to work
@@ -45,6 +46,8 @@ if (config.ai.provider === 'gemini') {
   container.register(TOKENS.AiProvider, { useClass: GeminiProvider });
 } else if (config.ai.provider === 'openai') {
   container.register(TOKENS.AiProvider, { useClass: OpenAiProvider });
+} else if (config.ai.provider === 'claude') {
+  container.register(TOKENS.AiProvider, { useClass: ClaudeProvider });
 } else {
   container.register(TOKENS.AiProvider, { useClass: OllamaProvider });
 }
