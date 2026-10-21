@@ -8,6 +8,7 @@ import { ResendProvider } from './modules/email/providers/ResendProvider';
 import { EmailService }  from './modules/email/services/EmailService';
 import { CompanyRepository }    from './modules/status/repositories/CompanyRepository';
 import { StatusFetcherService } from './modules/status/services/StatusFetcherService';
+import { SnapshotRepository }   from './modules/status/repositories/SnapshotRepository';
 import { TOKENS } from './tokens';
 
 // Re-export so existing imports of TOKENS from this file continue to work
@@ -29,5 +30,6 @@ container.registerSingleton(TOKENS.EmailService, EmailService);
 // ── Status module ─────────────────────────────────────────────────────────────
 container.registerSingleton(TOKENS.CompanyRepository,    CompanyRepository);
 container.registerSingleton(TOKENS.StatusFetcherService, StatusFetcherService);
+container.registerSingleton(TOKENS.SnapshotRepository,   SnapshotRepository);
 
 export { container };
