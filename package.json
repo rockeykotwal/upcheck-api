@@ -15,7 +15,8 @@
     "db:generate": "drizzle-kit generate",
     "db:studio": "drizzle-kit studio",
     "db:push": "drizzle-kit push",
-    "db:seed:rbac": "tsx src/modules/rbac/seeds/rbac.seed.ts"
+    "db:seed:rbac": "tsx src/modules/rbac/seeds/rbac.seed.ts",
+    "db:seed:companies": "tsx src/modules/status/seeds/companies.seed.ts"
   },
   "dependencies": {
     "@opentelemetry/api": "^1.9.0",
