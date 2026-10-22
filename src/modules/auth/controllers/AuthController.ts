@@ -6,6 +6,8 @@ import { container } from '../../../container';
 import { AuthService } from '../services/AuthService';
 import { SignupDto } from '../validators/SignupDto';
 import { LoginDto } from '../validators/LoginDto';
+import { ForgotPasswordDto } from '../validators/ForgotPasswordDto';
+import { ResetPasswordDto } from '../validators/ResetPasswordDto';
 import { AppError } from '../../../errors/AppError';
 import { authenticate } from '../../../middlewares/authenticate';
 
@@ -314,6 +316,48 @@ router.get('/refresh', async (req: Request, res: Response, next: NextFunction) =
     }
     const { accessToken } = await authService.refresh(token);
     res.status(200).json({ success: true, data: { accessToken } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/forgot-password', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const dto = plainToInstance(ForgotPasswordDto, req.body as object);
+    try {
+      await validateOrReject(dto);
+    } catch (errs) {
+      throw toValidationError(errs as ValidationError[]);
+    }
+    await authService.forgotPassword(dto.email);
+    // Always 200 — never reveal whether the email exists
+    res.status(200).json({ success: true, message: 'If that email is registered, a reset link has been sent.' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/reset-password', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const dto = plainToInstance(ResetPasswordDto, req.body as object);
+    try {
+      await validateOrReject(dto);
+    } catch (errs) {
+      throw toValidationError(errs as ValidationError[]);
+    }
+    await authService.resetPassword(dto.token, dto.newPassword);
+    res.status(200).json({ success: true, message: 'Password updated successfully.' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/verify-email', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { token } = req.query as { token?: string };
+    if (!token) throw new AppError('Verification token is required', 400);
+    await authService.verifyEmail(token);
+    res.status(200).json({ success: true, message: 'Email verified successfully.' });
   } catch (err) {
     next(err);
   }

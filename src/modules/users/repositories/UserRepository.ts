@@ -67,6 +67,22 @@ export class UserRepository {
     return rows[0] ?? null;
   }
 
+  async updatePassword(id: string, passwordHash: string): Promise<void> {
+    await deleteCache(`${CACHE_PREFIX}${id}`);
+    await this.db
+      .update(usersTable)
+      .set({ passwordHash })
+      .where(eq(usersTable.id, id));
+  }
+
+  async markEmailVerified(id: string): Promise<void> {
+    await deleteCache(`${CACHE_PREFIX}${id}`);
+    await this.db
+      .update(usersTable)
+      .set({ emailVerifiedAt: new Date() })
+      .where(eq(usersTable.id, id));
+  }
+
   async delete(id: string): Promise<void> {
     await deleteCache(`${CACHE_PREFIX}${id}`);
     await this.db.delete(usersTable).where(eq(usersTable.id, id));

@@ -33,14 +33,17 @@ import { AuthService } from '../../../src/modules/auth/services/AuthService';
 import { AppError } from '../../../src/errors/AppError';
 import { createUser } from '../../factories/user.factory';
 import type { UserRepository } from '../../../src/modules/users/repositories/UserRepository';
+import type { EmailService } from '../../../src/modules/email/services/EmailService';
 import type { Redis } from 'ioredis';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function buildAuthService() {
   const mockUserRepository = {
-    findByEmail: vi.fn(),
-    findById:    vi.fn(),
-    create:      vi.fn(),
+    findByEmail:      vi.fn(),
+    findById:         vi.fn(),
+    create:           vi.fn(),
+    updatePassword:   vi.fn().mockResolvedValue(undefined),
+    markEmailVerified: vi.fn().mockResolvedValue(undefined),
   } as unknown as UserRepository;
 
   const mockRedis = {
@@ -50,8 +53,13 @@ function buildAuthService() {
     set:   vi.fn().mockResolvedValue('OK'),
   } as unknown as Redis;
 
-  const service = new AuthService(mockUserRepository, mockRedis);
-  return { service, mockUserRepository, mockRedis };
+  const mockEmailService = {
+    sendVerificationEmail:  vi.fn().mockResolvedValue(undefined),
+    sendPasswordResetEmail: vi.fn().mockResolvedValue(undefined),
+  } as unknown as EmailService;
+
+  const service = new AuthService(mockUserRepository, mockRedis, mockEmailService);
+  return { service, mockUserRepository, mockRedis, mockEmailService };
 }
 
 async function makeRefreshToken(userId: string): Promise<string> {
@@ -92,7 +100,8 @@ describe('AuthService', () => {
       expect(result.user).not.toHaveProperty('passwordHash');
       expect(result.user.email).toBe(user.email);
       expect(mockUserRepository.create).toHaveBeenCalledOnce();
-      expect(mockRedis.setex).toHaveBeenCalledOnce();
+      // setex called twice: once for refresh_token, once for email_verify
+      expect(mockRedis.setex).toHaveBeenCalledTimes(2);
     });
 
     it('should throw 409 AppError when email already exists', async () => {
@@ -213,6 +222,74 @@ describe('AuthService', () => {
 
       // Assert
       expect(mockRedis.del).toHaveBeenCalledWith(`refresh_token:${userId}`);
+    });
+  });
+
+  describe('forgotPassword', () => {
+    it('should return silently when email is not found (no enumeration)', async () => {
+      const { service, mockUserRepository } = buildAuthService();
+      mockUserRepository.findByEmail = vi.fn().mockResolvedValue(null);
+
+      await expect(service.forgotPassword('ghost@example.com')).resolves.toBeUndefined();
+      expect(mockUserRepository.findByEmail).toHaveBeenCalledOnce();
+    });
+
+    it('should store a reset token in Redis and send email when user exists', async () => {
+      const { service, mockUserRepository, mockRedis, mockEmailService } = buildAuthService();
+      const user = createUser();
+      mockUserRepository.findByEmail = vi.fn().mockResolvedValue(user);
+
+      await service.forgotPassword(user.email);
+
+      expect(mockRedis.setex).toHaveBeenCalledWith(
+        expect.stringMatching(/^pwd_reset:/),
+        900,
+        user.id,
+      );
+      expect(mockEmailService.sendPasswordResetEmail).toHaveBeenCalledOnce();
+    });
+  });
+
+  describe('resetPassword', () => {
+    it('should throw 400 when token is not found in Redis', async () => {
+      const { service, mockRedis } = buildAuthService();
+      mockRedis.get = vi.fn().mockResolvedValue(null);
+
+      await expect(service.resetPassword('bad-token', 'newpass123')).rejects.toMatchObject({
+        statusCode: 400,
+      });
+    });
+
+    it('should delete the token, hash, and update password on valid token', async () => {
+      const { service, mockUserRepository, mockRedis } = buildAuthService();
+      const userId = crypto.randomUUID();
+      mockRedis.get = vi.fn().mockResolvedValue(userId);
+      mockArgon2Hash.mockResolvedValue('$argon2id$new-hash');
+
+      await service.resetPassword('valid-token', 'newpassword1');
+
+      expect(mockRedis.del).toHaveBeenCalledWith('pwd_reset:valid-token');
+      expect(mockUserRepository.updatePassword).toHaveBeenCalledWith(userId, '$argon2id$new-hash');
+    });
+  });
+
+  describe('verifyEmail', () => {
+    it('should throw 400 when token is not found in Redis', async () => {
+      const { service, mockRedis } = buildAuthService();
+      mockRedis.get = vi.fn().mockResolvedValue(null);
+
+      await expect(service.verifyEmail('bad-token')).rejects.toMatchObject({ statusCode: 400 });
+    });
+
+    it('should delete the token and mark email verified on valid token', async () => {
+      const { service, mockUserRepository, mockRedis } = buildAuthService();
+      const userId = crypto.randomUUID();
+      mockRedis.get = vi.fn().mockResolvedValue(userId);
+
+      await service.verifyEmail('valid-verify-token');
+
+      expect(mockRedis.del).toHaveBeenCalledWith('email_verify:valid-verify-token');
+      expect(mockUserRepository.markEmailVerified).toHaveBeenCalledWith(userId);
     });
   });
 
