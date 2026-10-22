@@ -70,10 +70,11 @@ describe('POST /api/auth/signup', () => {
     const res = await signupAndGetTokens();
 
     expect(res.status).toBe(201);
-    expect(res.body).toHaveProperty('accessToken');
-    expect(res.body).toHaveProperty('refreshToken');
-    expect(res.body.user).not.toHaveProperty('passwordHash');
-    expect(res.body.user.email).toBe(validUser.email);
+    expect(res.body).toHaveProperty('data.accessToken');
+    expect(res.body.data.user).not.toHaveProperty('passwordHash');
+    expect(res.body.data.user.email).toBe(validUser.email);
+    // refreshToken is now set as httpOnly cookie, not in body
+    expect(res.headers['set-cookie']).toBeDefined();
   });
 
   it('400 — rejects invalid email', async () => {
@@ -138,13 +139,17 @@ describe('POST /api/auth/login', () => {
 
 describe('POST /api/auth/refresh', () => {
   it('200 — returns new accessToken for valid refreshToken', async () => {
-    const signup  = await signupAndGetTokens();
-    const { refreshToken } = signup.body as { refreshToken: string };
+    const signup = await signupAndGetTokens();
 
-    const res = await request(app).post('/api/auth/refresh').send({ refreshToken });
+    // refreshToken is now an httpOnly cookie — extract and forward it
+    const setCookies = signup.headers['set-cookie'] as string[] | string;
+    const cookieArr  = Array.isArray(setCookies) ? setCookies : [setCookies];
+    const cookieVal  = cookieArr.find((c) => c.startsWith('refreshToken='))?.split(';')[0] ?? '';
+
+    const res = await request(app).get('/api/auth/refresh').set('Cookie', cookieVal);
 
     expect(res.status).toBe(200);
-    expect(res.body).toHaveProperty('accessToken');
+    expect(res.body).toHaveProperty('data.accessToken');
   });
 
   it('400 — rejects when refreshToken field is missing', async () => {
@@ -161,7 +166,7 @@ describe('POST /api/auth/refresh', () => {
 describe('POST /api/auth/logout', () => {
   it('200 — logs out authenticated user', async () => {
     const signup = await signupAndGetTokens();
-    const { accessToken } = signup.body as { accessToken: string };
+    const { accessToken } = signup.body.data as { accessToken: string };
 
     const res = await request(app)
       .post('/api/auth/logout')

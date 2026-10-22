@@ -152,8 +152,14 @@ router.post('/signup', async (req: Request, res: Response, next: NextFunction) =
     } catch (errs) {
       throw toValidationError(errs as ValidationError[]);
     }
-    const result = await authService.signup(dto);
-    res.status(201).json(result);
+    const { accessToken, refreshToken, user } = await authService.signup(dto);
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env['NODE_ENV'] === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+    res.status(201).json({ success: true, data: { accessToken, user } });
   } catch (err) {
     next(err);
   }
