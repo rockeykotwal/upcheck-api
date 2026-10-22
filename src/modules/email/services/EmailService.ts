@@ -52,6 +52,33 @@ export class EmailService {
     logger.info('Password reset email sent', { to: opts.to });
   }
 
+  async sendStatusChangeEmail(opts: {
+    to:          string;
+    firstName:   string;
+    companyName: string;
+    indicator:   string;
+    description: string;
+    statusUrl:   string;
+    type:        'degraded' | 'recovered';
+  }): Promise<void> {
+    const template = opts.type === 'recovered' ? 'service-recovered' : 'service-degraded';
+    const subject  = opts.type === 'recovered'
+      ? `${opts.companyName} has recovered — ${config.app.name}`
+      : `${opts.companyName} is experiencing issues — ${config.app.name}`;
+
+    const html = renderTemplate(template, {
+      appName:     config.app.name,
+      firstName:   opts.firstName,
+      companyName: opts.companyName,
+      indicator:   opts.indicator,
+      description: opts.description,
+      statusUrl:   opts.statusUrl,
+    });
+
+    await this.provider.send({ to: opts.to, subject, html });
+    logger.info('Status change email sent', { to: opts.to, type: opts.type, company: opts.companyName });
+  }
+
   async sendWelcomeEmail(opts: {
     to:        string;
     firstName: string;
