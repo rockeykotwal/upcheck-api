@@ -19,6 +19,8 @@ import { ClaudeProvider }        from './modules/ai/providers/ClaudeProvider';
 import { AdminService }          from './modules/admin/services/AdminService';
 import { WatchlistRepository }  from './modules/watchlist/repositories/WatchlistRepository';
 import { WatchlistService }     from './modules/watchlist/services/WatchlistService';
+import { UserRepository }       from './modules/users/repositories/UserRepository';
+import { AlertService }         from './modules/alert/services/AlertService';
 import { TOKENS } from './tokens';
 
 // Re-export so existing imports of TOKENS from this file continue to work
@@ -62,5 +64,11 @@ container.registerSingleton(TOKENS.AdminService, AdminService);
 // ── Watchlist module ──────────────────────────────────────────────────────────
 container.registerSingleton(TOKENS.WatchlistRepository, WatchlistRepository);
 container.registerSingleton(TOKENS.WatchlistService,    WatchlistService);
+
+// ── Users ─────────────────────────────────────────────────────────────────────
+container.registerSingleton(TOKENS.UserRepository, UserRepository);
+
+// ── Alert module ──────────────────────────────────────────────────────────────
+container.registerSingleton(TOKENS.AlertService, AlertService);
 
 export { container };

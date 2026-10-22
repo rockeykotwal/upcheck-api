@@ -113,7 +113,7 @@ describe('SnapshotRepository', () => {
 
       expect(result).toEqual(snapshots);
       expect(cursor.sort).toHaveBeenCalledWith({ fetchedAt: -1 });
-      expect(cursor.limit).toHaveBeenCalledWith(20);
+      expect(cursor.limit).toHaveBeenCalledWith(50);
     });
 
     it('respects a custom limit', async () => {

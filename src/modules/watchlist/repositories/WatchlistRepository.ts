@@ -39,6 +39,10 @@ export class WatchlistRepository {
     return this.db.select().from(watchlistTable).where(eq(watchlistTable.userId, userId));
   }
 
+  async findByCompanyId(companyId: string): Promise<WatchlistEntry[]> {
+    return this.db.select().from(watchlistTable).where(eq(watchlistTable.companyId, companyId));
+  }
+
   async isWatching(userId: string, companyId: string): Promise<boolean> {
     const rows = await this.db
       .select()

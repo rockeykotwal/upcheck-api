@@ -89,9 +89,12 @@ describe('StatusFetcherService.fetchAll', () => {
   it('one failure does not prevent other companies from being fetched', async () => {
     const stripe: Company = { ...baseCompany, id: 'company-2', slug: 'stripe', statusPageUrl: 'https://status.stripe.com' };
 
+    // Each company makes 2 fetch calls: status.json + components.json
+    // Call 1: github status.json → fail, Call 2: github components.json → ignored
+    // Call 3: stripe status.json → ok,  Call 4: stripe components.json → ok
     mockFetch
       .mockRejectedValueOnce(new Error('timeout'))
-      .mockResolvedValueOnce(okResponse('none', 'All Systems Operational'));
+      .mockResolvedValue(okResponse('none', 'All Systems Operational'));
 
     const service = makeService(makeRepo([baseCompany, stripe]));
     const results = await service.fetchAll();
