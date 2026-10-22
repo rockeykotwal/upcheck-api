@@ -17,6 +17,8 @@ import { OpenAiProvider }        from './modules/ai/providers/OpenAiProvider';
 import { AiService }             from './modules/ai/services/AiService';
 import { ClaudeProvider }        from './modules/ai/providers/ClaudeProvider';
 import { AdminService }          from './modules/admin/services/AdminService';
+import { WatchlistRepository }  from './modules/watchlist/repositories/WatchlistRepository';
+import { WatchlistService }     from './modules/watchlist/services/WatchlistService';
 import { TOKENS } from './tokens';
 
 // Re-export so existing imports of TOKENS from this file continue to work
@@ -56,5 +58,9 @@ container.registerSingleton(TOKENS.AiService, AiService);
 
 // ── Admin module ──────────────────────────────────────────────────────────────
 container.registerSingleton(TOKENS.AdminService, AdminService);
+
+// ── Watchlist module ──────────────────────────────────────────────────────────
+container.registerSingleton(TOKENS.WatchlistRepository, WatchlistRepository);
+container.registerSingleton(TOKENS.WatchlistService,    WatchlistService);
 
 export { container };

@@ -20,6 +20,11 @@ export class CompanyRepository {
     return this.db.select().from(companiesTable);
   }
 
+  async findById(id: string): Promise<Company | null> {
+    const rows = await this.db.select().from(companiesTable).where(eq(companiesTable.id, id));
+    return rows[0] ?? null;
+  }
+
   async findBySlug(slug: string): Promise<Company | null> {
     const rows = await this.db.select().from(companiesTable).where(eq(companiesTable.slug, slug));
     return rows[0] ?? null;
