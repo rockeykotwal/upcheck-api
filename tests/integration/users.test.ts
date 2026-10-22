@@ -40,7 +40,7 @@ describe('GET /api/users/me', () => {
       firstName: 'Me', lastName: 'User', email: 'me@example.com', password: 'password123',
     });
 
-    const { accessToken, user } = signup.body as { accessToken: string; user: { id: string } };
+    const { accessToken, user } = signup.body.data as { accessToken: string; user: { id: string } };
 
     const res = await request(app)
       .get('/api/users/me')

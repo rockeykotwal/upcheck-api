@@ -32,14 +32,14 @@ const companies = [
 ];
 
 async function seed() {
-  console.log('Seeding companies...');
+  process.stdout.write('Seeding companies...\n');
 
   await db
     .insert(companiesTable)
     .values(companies)
     .onConflictDoNothing({ target: companiesTable.slug });
 
-  console.log(`✓ ${companies.length} companies seeded`);
+  process.stdout.write(`✓ ${companies.length} companies seeded\n`);
   await pool.end();
 }
 

@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { StatusService } from '../../../src/modules/status/services/StatusService';
 import type { CompanyRepository } from '../../../src/modules/status/repositories/CompanyRepository';
 import type { SnapshotRepository } from '../../../src/modules/status/repositories/SnapshotRepository';
