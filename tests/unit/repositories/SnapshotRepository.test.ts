@@ -1,8 +1,16 @@
 import 'reflect-metadata';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SnapshotRepository } from '../../../src/modules/status/repositories/SnapshotRepository';
 import type { FetchResult, StatusIndicator } from '../../../src/modules/status/types/statuspage.types';
 import type { StatusSnapshot } from '../../../src/modules/status/types/snapshot.types';
+
+vi.mock('../../../src/cache/redis', () => ({
+  getCache:    vi.fn().mockResolvedValue(null),
+  setCache:    vi.fn().mockResolvedValue(undefined),
+  deleteCache: vi.fn().mockResolvedValue(undefined),
+}));
+
+import { getCache, setCache, deleteCache } from '../../../src/cache/redis';
 
 function makeResult(slug: string, indicator: StatusIndicator = 'none', ok = true): FetchResult {
   return {
@@ -33,6 +41,12 @@ function makeDb(overrides: Record<string, unknown> = {}) {
   };
 }
 
+beforeEach(() => {
+  vi.mocked(getCache).mockResolvedValue(null);
+  vi.mocked(setCache).mockResolvedValue(undefined);
+  vi.mocked(deleteCache).mockResolvedValue(undefined);
+});
+
 describe('SnapshotRepository', () => {
   describe('saveMany', () => {
     it('inserts only successful fetch results', async () => {
@@ -51,6 +65,21 @@ describe('SnapshotRepository', () => {
       expect(inserted.map((d) => d.slug)).toEqual(['github', 'cloudflare']);
     });
 
+    it('invalidates cache for each successfully inserted slug', async () => {
+      const { db } = makeDb();
+      const repo = new SnapshotRepository(db);
+
+      await repo.saveMany([
+        makeResult('github', 'none', true),
+        makeResult('stripe', 'none', false),
+        makeResult('cloudflare', 'minor', true),
+      ]);
+
+      expect(deleteCache).toHaveBeenCalledTimes(2);
+      expect(deleteCache).toHaveBeenCalledWith('snapshot:latest:github');
+      expect(deleteCache).toHaveBeenCalledWith('snapshot:latest:cloudflare');
+    });
+
     it('does nothing when all results failed', async () => {
       const { db, collection } = makeDb();
       const repo = new SnapshotRepository(db);
@@ -58,6 +87,7 @@ describe('SnapshotRepository', () => {
       await repo.saveMany([makeResult('github', 'none', false)]);
 
       expect(collection.insertMany).not.toHaveBeenCalled();
+      expect(deleteCache).not.toHaveBeenCalled();
     });
 
     it('does nothing when results array is empty', async () => {
@@ -71,10 +101,25 @@ describe('SnapshotRepository', () => {
   });
 
   describe('findLatestBySlug', () => {
-    it('returns the most recent snapshot for a slug', async () => {
+    it('returns cached snapshot without hitting MongoDB', async () => {
       const snapshot: StatusSnapshot = {
         companyId: 'id-github', slug: 'github', indicator: 'none',
-        description: 'All Systems Operational', fetchedAt: new Date(),
+        description: 'All Systems Operational', fetchedAt: new Date(), components: [],
+      };
+      vi.mocked(getCache).mockResolvedValueOnce(snapshot);
+      const { db, collection } = makeDb();
+      const repo = new SnapshotRepository(db);
+
+      const result = await repo.findLatestBySlug('github');
+
+      expect(result).toEqual(snapshot);
+      expect(collection.findOne).not.toHaveBeenCalled();
+    });
+
+    it('fetches from MongoDB on cache miss and caches the result', async () => {
+      const snapshot: StatusSnapshot = {
+        companyId: 'id-github', slug: 'github', indicator: 'none',
+        description: 'All Systems Operational', fetchedAt: new Date(), components: [],
       };
       const { db, collection } = makeDb({ findOne: vi.fn().mockResolvedValue(snapshot) });
       const repo = new SnapshotRepository(db);
@@ -83,15 +128,17 @@ describe('SnapshotRepository', () => {
 
       expect(result).toEqual(snapshot);
       expect(collection.findOne).toHaveBeenCalledWith({ slug: 'github' }, { sort: { fetchedAt: -1 } });
+      expect(setCache).toHaveBeenCalledWith('snapshot:latest:github', snapshot, 65);
     });
 
-    it('returns null when no snapshot exists for the slug', async () => {
+    it('returns null and does not cache when no snapshot exists', async () => {
       const { db } = makeDb();
       const repo = new SnapshotRepository(db);
 
       const result = await repo.findLatestBySlug('unknown-service');
 
       expect(result).toBeNull();
+      expect(setCache).not.toHaveBeenCalled();
     });
   });
 
