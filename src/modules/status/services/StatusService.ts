@@ -4,7 +4,7 @@ import { TOKENS } from '../../../tokens';
 import { CompanyRepository } from '../repositories/CompanyRepository';
 import { SnapshotRepository } from '../repositories/SnapshotRepository';
 import type { Company } from '../models/company.schema';
-import type { StatusSnapshot } from '../types/snapshot.types';
+import type { StatusSnapshot, UptimeStats } from '../types/snapshot.types';
 
 export interface CompanyStatus {
   company:  Company;
@@ -15,6 +15,7 @@ export interface CompanyDetail {
   company:  Company;
   current:  StatusSnapshot | null;
   history:  StatusSnapshot[];
+  uptime:   UptimeStats;
 }
 
 @injectable()
@@ -52,11 +53,12 @@ export class StatusService {
 
     if (!company) return null;
 
-    const [current, history] = await Promise.all([
+    const [current, history, uptime] = await Promise.all([
       this.snapshots.findLatestBySlug(slug),
-      this.snapshots.findRecentBySlug(slug, 20),
+      this.snapshots.findRecentBySlug(slug),
+      this.snapshots.getUptimeStats(slug),
     ]);
 
-    return { company, current, history };
+    return { company, current, history, uptime };
   }
 }

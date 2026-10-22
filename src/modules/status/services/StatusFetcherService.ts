@@ -29,15 +29,25 @@ export class StatusFetcherService {
   }
 
   private async fetchOne(companyId: string, slug: string, statusPageUrl: string): Promise<FetchResult> {
-    const url = `${statusPageUrl}/api/v2/status.json`;
+    const signal = AbortSignal.timeout(8000);
 
-    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    const [statusRes, componentsRes] = await Promise.all([
+      fetch(`${statusPageUrl}/api/v2/status.json`,     { signal }),
+      fetch(`${statusPageUrl}/api/v2/components.json`, { signal }),
+    ]);
 
-    if (!res.ok) {
-      return { companyId, slug, ok: false, error: `HTTP ${res.status}` };
+    if (!statusRes.ok) {
+      return { companyId, slug, ok: false, error: `HTTP ${statusRes.status}` };
     }
 
-    const body = await res.json() as StatusPageSummaryResponse;
+    const body       = await statusRes.json() as StatusPageSummaryResponse;
+    const compBody   = componentsRes.ok
+      ? await componentsRes.json() as { components: StatusPageSummaryResponse['components'] }
+      : { components: [] };
+
+    const components = (compBody.components ?? [])
+      .filter((c) => !c.id.startsWith('group'))
+      .map(({ id, name, status }) => ({ id, name, status }));
 
     return {
       companyId,
@@ -48,6 +58,7 @@ export class StatusFetcherService {
         slug,
         indicator:   body.status.indicator,
         description: body.status.description,
+        components,
         fetchedAt:   new Date(),
       },
     };

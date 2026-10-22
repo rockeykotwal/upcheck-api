@@ -11,7 +11,7 @@ function makeCompany(slug: string, name: string): Company {
 }
 
 function makeSnapshot(slug: string): StatusSnapshot {
-  return { companyId: `id-${slug}`, slug, indicator: 'none', description: 'All Systems Operational', fetchedAt: new Date() };
+  return { companyId: `id-${slug}`, slug, indicator: 'none', description: 'All Systems Operational', components: [], fetchedAt: new Date() };
 }
 
 function buildService(companies: Company[], latestSnapshot: StatusSnapshot | null = null, recentSnapshots: StatusSnapshot[] = []) {
@@ -25,6 +25,7 @@ function buildService(companies: Company[], latestSnapshot: StatusSnapshot | nul
   const snapshotsRepo = {
     findLatestBySlug: vi.fn().mockResolvedValue(latestSnapshot),
     findRecentBySlug: vi.fn().mockResolvedValue(recentSnapshots),
+    getUptimeStats:   vi.fn().mockResolvedValue({ h24: 100, d7: 100, d30: 100 }),
   } as unknown as SnapshotRepository;
 
   const service = new StatusService(companiesRepo, snapshotsRepo);
