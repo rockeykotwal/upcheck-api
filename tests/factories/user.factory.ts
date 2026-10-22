@@ -33,13 +33,14 @@ export function createUserData(overrides: Partial<NewUser> = {}): NewUser {
  */
 export function createUser(overrides: Partial<User> = {}): User {
   return {
-    id:           crypto.randomUUID(),
-    firstName:    'Test',
-    lastName:     'User',
-    email:        uniqueEmail(),
-    passwordHash: DEFAULT_PASSWORD_HASH,
-    createdAt:    new Date('2024-01-01T00:00:00Z'),
-    updatedAt:    new Date('2024-01-01T00:00:00Z'),
+    id:              crypto.randomUUID(),
+    firstName:       'Test',
+    lastName:        'User',
+    email:           uniqueEmail(),
+    passwordHash:    DEFAULT_PASSWORD_HASH,
+    emailVerifiedAt: null,
+    createdAt:       new Date('2024-01-01T00:00:00Z'),
+    updatedAt:       new Date('2024-01-01T00:00:00Z'),
     ...overrides,
   };
 }

@@ -2,13 +2,17 @@ import 'reflect-metadata';
 import { injectable, inject } from 'tsyringe';
 import { SignJWT, jwtVerify, type JWTPayload } from 'jose';
 import * as argon2 from 'argon2';
+import { randomBytes } from 'crypto';
 import type { Redis } from 'ioredis';
 import { UserRepository } from '../../users/repositories/UserRepository';
+import { EmailService } from '../../email/services/EmailService';
 import type { User } from '../../users/models/user.schema';
 import type { SignupDto } from '../validators/SignupDto';
 import type { LoginDto } from '../validators/LoginDto';
 import { AppError } from '../../../errors/AppError';
 import { config } from '../../../config';
+import { TOKENS } from '../../../tokens';
+import { logger } from '../../../observability/logger';
 
 export type SafeUser = Omit<User, 'passwordHash'>;
 
@@ -17,8 +21,9 @@ export class AuthService {
   private readonly jwtSecret: Uint8Array;
 
   constructor(
-    @inject(UserRepository) private readonly userRepository: UserRepository,
-    @inject('RedisClient') private readonly redis: Redis,
+    @inject(UserRepository)      private readonly userRepository: UserRepository,
+    @inject('RedisClient')       private readonly redis: Redis,
+    @inject(TOKENS.EmailService) private readonly emailService: EmailService,
   ) {
     this.jwtSecret = new TextEncoder().encode(config.jwt.secret);
   }
@@ -96,6 +101,20 @@ export class AuthService {
     const refreshToken = await this.generateRefreshToken(created.id);
     await this.storeRefreshToken(created.id, refreshToken);
 
+    // Send verification email — swallowed so signup never fails due to email issues
+    try {
+      const verifyToken = randomBytes(32).toString('hex');
+      await this.redis.setex(`email_verify:${verifyToken}`, 86400, created.id);
+      const verifyUrl = `${config.app.frontendUrl}/verify-email?token=${verifyToken}`;
+      await this.emailService.sendVerificationEmail({
+        to: created.email,
+        firstName: created.firstName,
+        verificationUrl: verifyUrl,
+      });
+    } catch (err) {
+      logger.warn('Failed to send verification email on signup', { userId: created.id, error: err });
+    }
+
     const { passwordHash: _pw, ...user } = created;
     return { accessToken, refreshToken, user };
   }
@@ -141,5 +160,38 @@ export class AuthService {
 
   async logout(userId: string): Promise<void> {
     await this.revokeRefreshToken(userId);
+  }
+
+  async forgotPassword(email: string): Promise<void> {
+    const user = await this.userRepository.findByEmail(email);
+    // Return silently even if email not found — prevents user enumeration
+    if (!user) return;
+
+    const token = randomBytes(32).toString('hex');
+    await this.redis.setex(`pwd_reset:${token}`, 900, user.id); // 15 minutes
+
+    const resetUrl = `${config.app.frontendUrl}/reset-password?token=${token}`;
+    await this.emailService.sendPasswordResetEmail({
+      to: user.email,
+      firstName: user.firstName,
+      resetUrl,
+    });
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    const userId = await this.redis.get(`pwd_reset:${token}`);
+    if (!userId) throw new AppError('Reset token is invalid or has expired', 400);
+
+    await this.redis.del(`pwd_reset:${token}`);
+    const passwordHash = await this.hashPassword(newPassword);
+    await this.userRepository.updatePassword(userId, passwordHash);
+  }
+
+  async verifyEmail(token: string): Promise<void> {
+    const userId = await this.redis.get(`email_verify:${token}`);
+    if (!userId) throw new AppError('Verification token is invalid or has expired', 400);
+
+    await this.redis.del(`email_verify:${token}`);
+    await this.userRepository.markEmailVerified(userId);
   }
 }
