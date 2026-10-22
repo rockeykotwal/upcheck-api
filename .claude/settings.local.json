@@ -54,7 +54,8 @@
       "Bash(git remote *)",
       "Bash(git stash *)",
       "Bash(MONGODB_URI=mongodb://localhost:27017/myapp npm run test)",
-      "Bash(MONGODB_URI=mongodb://localhost:27017/myapp npx vitest run tests/integration/users.test.ts)"
+      "Bash(MONGODB_URI=mongodb://localhost:27017/myapp npx vitest run tests/integration/users.test.ts)",
+      "Bash(git *)"
     ],
     "additionalDirectories": [
       "/Users/rockeykotwalmac/Desktop/Boilerplate/express-ts-drizzle-boilerplate/.claude",

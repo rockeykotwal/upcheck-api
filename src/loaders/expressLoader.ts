@@ -14,7 +14,8 @@ import { requestLogger } from '../middlewares/requestLogger';
 import { defaultRateLimiter } from '../middlewares/rateLimiter';
 import { notFound } from '../middlewares/notFound';
 import { errorHandler } from '../middlewares/errorHandler';
-import { registerRbac } from '../modules/rbac';
+import { registerRbac }      from '../modules/rbac';
+import { registerWatchlist } from '../modules/watchlist';
 import statusRouter from '../modules/status/controllers/StatusController';
 import aiRouter from '../modules/ai/controllers/AiController';
 import adminRouter from '../modules/admin/controllers/AdminController';
@@ -112,6 +113,9 @@ export function expressLoader(): Application {
 
   // ── RBAC module (roles, permissions, user-role assignment) ────────────────
   registerRbac(app);
+
+  // ── Watchlist module ───────────────────────────────────────────────────────
+  registerWatchlist(app);
 
   // ── Global rate limiting (skips /health via `skip` option) ─────────────────
   app.use(defaultRateLimiter);
