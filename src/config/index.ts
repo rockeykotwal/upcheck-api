@@ -56,6 +56,7 @@ export const config = {
     pass: requireEnv('DB_PASS'),
     poolMin: envInt('DB_POOL_MIN', 2),
     poolMax: envInt('DB_POOL_MAX', 10),
+    ssl: optionalEnv('DB_SSL', 'false') === 'true',
   },
   redis: {
     url: requireEnv('REDIS_URL'),

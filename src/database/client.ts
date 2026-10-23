@@ -12,6 +12,7 @@ export const pool = new Pool({
   max:                    config.db.poolMax,
   connectionTimeoutMillis: 5_000,
   idleTimeoutMillis:       30_000,
+  ssl: config.db.ssl ? { rejectUnauthorized: false } : false,
 });
 
 export const db = drizzle(pool);
