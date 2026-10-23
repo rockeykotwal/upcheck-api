@@ -42,7 +42,7 @@ function envInt(key: string, fallback: number): number {
 
 export const config = {
   app: {
-    port:         envInt('APP_PORT', 3000),
+    port: envInt('PORT', envInt('APP_PORT', 3000)),
     env:          optionalEnv('NODE_ENV', 'development'),
     isProduction: optionalEnv('NODE_ENV', 'development') === 'production',
     name:         optionalEnv('APP_NAME', 'App'),
