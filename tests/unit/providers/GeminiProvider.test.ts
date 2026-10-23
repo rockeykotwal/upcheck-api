@@ -15,6 +15,7 @@ function mockFetch(body: unknown, ok = true, status = 200) {
     ok,
     status,
     json: () => Promise.resolve(body),
+    text: () => Promise.resolve(JSON.stringify(body)),
   } as Response);
 }
 

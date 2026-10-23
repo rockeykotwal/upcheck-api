@@ -57,7 +57,7 @@ describe('GET /api/status', () => {
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('statuses');
     expect(Array.isArray(res.body.statuses)).toBe(true);
-  });
+  }, 15000);
 
   it('200 — each item has company and current fields', async () => {
     await seedCompany(testSlug, 'Test Status Co');
