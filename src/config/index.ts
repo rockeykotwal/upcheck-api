@@ -86,7 +86,7 @@ export const config = {
     },
     gemini: {
       apiKey: optionalEnv('GEMINI_API_KEY', ''),
-      model:  optionalEnv('GEMINI_MODEL', 'gemini-1.5-flash'),
+      model:  optionalEnv('GEMINI_MODEL', 'gemini-3.1-flash-lite'),
     },
     openai: {
       apiKey: optionalEnv('OPENAI_API_KEY', ''),

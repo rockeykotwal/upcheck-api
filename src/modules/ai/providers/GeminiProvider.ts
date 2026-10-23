@@ -30,7 +30,8 @@ export class GeminiProvider implements AiProvider {
     }
 
     if (!res.ok) {
-      logger.error('Gemini returned error', { status: res.status });
+      const errBody = await res.text().catch(() => '');
+      logger.error('Gemini returned error', { status: res.status, body: errBody });
       throw new AppError('AI provider error', 502, false);
     }
 
