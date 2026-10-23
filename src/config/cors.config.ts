@@ -1,8 +1,9 @@
 import type { CorsOptions } from 'cors';
 
-const allowedOrigins = [
-  process.env['FRONTEND_URL'] ?? 'http://localhost:5173',
-];
+const allowedOrigins = (process.env['FRONTEND_URL'] ?? 'http://localhost:5173')
+  .split(',')
+  .map((u) => u.trim())
+  .filter(Boolean);
 
 export const corsOptions: CorsOptions = {
   origin: (origin, callback) => {
