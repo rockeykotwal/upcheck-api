@@ -101,7 +101,7 @@ export const config = {
     apiKey: optionalEnv('ADMIN_API_KEY', ''),
   },
   email: {
-    provider:    optionalEnv('EMAIL_PROVIDER', 'smtp') as 'smtp' | 'resend',
+    provider:    optionalEnv('EMAIL_PROVIDER', 'smtp') as 'smtp' | 'resend' | 'console',
     from:        optionalEnv('EMAIL_FROM', 'noreply@example.com'),
     fromName:    optionalEnv('EMAIL_FROM_NAME', 'App'),
     smtp: {

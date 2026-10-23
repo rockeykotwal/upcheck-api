@@ -3,8 +3,9 @@ import { container } from 'tsyringe';
 import { db } from './database/client';
 import { redisClient } from './cache/redis';
 import { config } from './config';
-import { SmtpProvider }  from './modules/email/providers/SmtpProvider';
-import { ResendProvider } from './modules/email/providers/ResendProvider';
+import { SmtpProvider }    from './modules/email/providers/SmtpProvider';
+import { ResendProvider }  from './modules/email/providers/ResendProvider';
+import { ConsoleProvider } from './modules/email/providers/ConsoleProvider';
 import { EmailService }  from './modules/email/services/EmailService';
 import { CompanyRepository }    from './modules/status/repositories/CompanyRepository';
 import { StatusFetcherService } from './modules/status/services/StatusFetcherService';
@@ -34,6 +35,8 @@ container.registerInstance(TOKENS.RedisClient, redisClient);
 // ── Email provider — chosen at startup from EMAIL_PROVIDER env var ─────────
 if (config.email.provider === 'resend') {
   container.register(TOKENS.EmailProvider, { useClass: ResendProvider });
+} else if (config.email.provider === 'console') {
+  container.register(TOKENS.EmailProvider, { useClass: ConsoleProvider });
 } else {
   container.register(TOKENS.EmailProvider, { useClass: SmtpProvider });
 }
