@@ -13,6 +13,7 @@ export default {
     database: process.env.DB_NAME     ?? 'myapp',
     user:     process.env.DB_USER     ?? 'postgres',
     password: process.env.DB_PASS     ?? 'postgres',
+    ssl: process.env.DB_SSL === 'true',
   },
   verbose: true,
   strict: true,
