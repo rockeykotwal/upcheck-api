@@ -6,6 +6,7 @@ import { AdminService } from '../services/AdminService';
 import { StatusPollerService } from '../../status/services/StatusPollerService';
 import { requireAdminKey } from '../../../middlewares/requireAdminKey';
 import { AppError } from '../../../errors/AppError';
+import { logger } from '../../../observability/logger';
 import type { CompanyStatus } from '../../status/models/company.schema';
 
 const VALID_STATUSES: CompanyStatus[] = ['active', 'paused', 'retired'];
@@ -73,11 +74,18 @@ router.delete('/companies/:slug', async (req: Request, res: Response, next: Next
 });
 
 // POST /api/admin/poll — trigger a status poll manually (for external cron on serverless)
-router.post('/poll', async (_req: Request, res: Response, next: NextFunction) => {
+router.post('/poll', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const poller = container.resolve<StatusPollerService>(TOKENS.StatusPollerService);
+    const source = (req.query['source'] as string | undefined) ?? 'unknown';
+    const poller  = container.resolve<StatusPollerService>(TOKENS.StatusPollerService);
+
+    logger.info('Manual poll triggered', { source });
     await poller.poll();
-    res.json({ ok: true, polledAt: new Date().toISOString() });
+
+    const polledAt = new Date().toISOString();
+    logger.info('Manual poll complete', { source, polledAt });
+
+    res.json({ ok: true, source, polledAt });
   } catch (err) {
     next(err);
   }

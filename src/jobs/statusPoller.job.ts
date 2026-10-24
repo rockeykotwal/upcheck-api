@@ -10,14 +10,14 @@ export function startStatusPollerJob(): void {
   const poller = container.resolve<StatusPollerService>(TOKENS.StatusPollerService);
 
   const run = () => {
+    logger.info('Internal poll triggered', { source: 'internal' });
     poller.poll().catch((err: Error) => {
-      logger.error('Status poll failed', { error: err.message });
+      logger.error('Status poll failed', { source: 'internal', error: err.message });
     });
   };
 
-  // Run once immediately on boot, then every 5 minutes
   run();
   setInterval(run, INTERVAL_MS);
 
-  logger.info('Status poller job started', { intervalMs: INTERVAL_MS });
+  logger.info('Status poller job started', { source: 'internal', intervalMs: INTERVAL_MS });
 }
