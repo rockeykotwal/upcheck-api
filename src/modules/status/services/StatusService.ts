@@ -3,8 +3,10 @@ import { injectable, inject } from 'tsyringe';
 import { TOKENS } from '../../../tokens';
 import { CompanyRepository } from '../repositories/CompanyRepository';
 import { SnapshotRepository } from '../repositories/SnapshotRepository';
+import { PostmortemRepository } from '../repositories/PostmortemRepository';
 import type { Company } from '../models/company.schema';
 import type { StatusSnapshot, UptimeStats } from '../types/snapshot.types';
+import type { Postmortem } from '../types/postmortem.types';
 
 export interface CompanyStatus {
   company:  Company;
@@ -21,8 +23,9 @@ export interface CompanyDetail {
 @injectable()
 export class StatusService {
   constructor(
-    @inject(TOKENS.CompanyRepository)  private readonly companies: CompanyRepository,
-    @inject(TOKENS.SnapshotRepository) private readonly snapshots: SnapshotRepository,
+    @inject(TOKENS.CompanyRepository)    private readonly companies: CompanyRepository,
+    @inject(TOKENS.SnapshotRepository)   private readonly snapshots: SnapshotRepository,
+    @inject(TOKENS.PostmortemRepository) private readonly postmortems: PostmortemRepository,
   ) {}
 
   async listAll(): Promise<CompanyStatus[]> {
@@ -46,6 +49,10 @@ export class StatusService {
         company.name.toLowerCase().includes(q) ||
         company.slug.toLowerCase().includes(q),
     );
+  }
+
+  async getPostmortems(slug: string): Promise<Postmortem[]> {
+    return this.postmortems.findBySlug(slug);
   }
 
   async getDetail(slug: string): Promise<CompanyDetail | null> {

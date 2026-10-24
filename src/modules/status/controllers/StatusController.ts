@@ -63,6 +63,32 @@ router.get('/search', async (req: Request, res: Response, next: NextFunction) =>
 
 /**
  * @openapi
+ * /api/status/{slug}/postmortems:
+ *   get:
+ *     tags: [Companies]
+ *     summary: Get postmortems (resolved incidents) for a service
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of postmortems ordered newest first
+ */
+router.get('/:slug/postmortems', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { slug } = req.params as { slug: string };
+    const postmortems = await service().getPostmortems(slug);
+    res.json({ postmortems });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * @openapi
  * /api/status/{slug}:
  *   get:
  *     tags: [Companies]
