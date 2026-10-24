@@ -65,6 +65,18 @@ export class SnapshotRepository {
       .toArray();
   }
 
+  // Returns the most recent contiguous block of non-none snapshots (the incident window).
+  // Expects to be called right after a recovery event so snapshots[0] is the new 'none'.
+  async findIncidentWindow(slug: string): Promise<StatusSnapshot[]> {
+    const snapshots = await this.findRecentBySlug(slug, 200);
+    const window: StatusSnapshot[] = [];
+    for (let i = 1; i < snapshots.length; i++) {
+      if (snapshots[i]!.indicator === 'none') break;
+      window.push(snapshots[i]!);
+    }
+    return window; // sorted desc (newest first)
+  }
+
   async getUptimeStats(slug: string): Promise<UptimeStats> {
     const cached = await getCache<UptimeStats>(UPTIME_KEY(slug));
     if (cached) return cached;

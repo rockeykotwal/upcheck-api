@@ -17,4 +17,7 @@ export const TOKENS = {
   WatchlistService:      'WatchlistService',
   UserRepository:        'UserRepository',
   AlertService:          'AlertService',
+  PredictionService:     'PredictionService',
+  PostmortemService:     'PostmortemService',
+  PostmortemRepository:  'PostmortemRepository',
 } as const;

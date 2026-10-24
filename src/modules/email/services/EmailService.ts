@@ -79,6 +79,60 @@ export class EmailService {
     logger.info('Status change email sent', { to: opts.to, type: opts.type, company: opts.companyName });
   }
 
+  async sendPredictionAlertEmail(opts: {
+    to:          string;
+    firstName:   string;
+    companyName: string;
+    riskLevel:   'elevated' | 'high';
+    warningText: string;
+    statusUrl:   string;
+  }): Promise<void> {
+    const html = renderTemplate('prediction-alert', {
+      appName:     config.app.name,
+      firstName:   opts.firstName,
+      companyName: opts.companyName,
+      riskLevel:   opts.riskLevel,
+      warningText: opts.warningText,
+      statusUrl:   opts.statusUrl,
+    });
+
+    await this.provider.send({
+      to:      opts.to,
+      subject: `Predictive warning: ${opts.companyName} may be heading for an outage — ${config.app.name}`,
+      html,
+    });
+
+    logger.info('Prediction alert email sent', { to: opts.to, company: opts.companyName, riskLevel: opts.riskLevel });
+  }
+
+  async sendPostmortemEmail(opts: {
+    to:              string;
+    firstName:       string;
+    companyName:     string;
+    durationMinutes: number;
+    peakIndicator:   string;
+    summary:         string;
+    statusUrl:       string;
+  }): Promise<void> {
+    const html = renderTemplate('postmortem-ready', {
+      appName:         config.app.name,
+      firstName:       opts.firstName,
+      companyName:     opts.companyName,
+      durationMinutes: String(opts.durationMinutes),
+      peakIndicator:   opts.peakIndicator,
+      summary:         opts.summary,
+      statusUrl:       opts.statusUrl,
+    });
+
+    await this.provider.send({
+      to:      opts.to,
+      subject: `${opts.companyName} incident resolved — postmortem ready — ${config.app.name}`,
+      html,
+    });
+
+    logger.info('Postmortem email sent', { to: opts.to, company: opts.companyName });
+  }
+
   async sendWelcomeEmail(opts: {
     to:        string;
     firstName: string;

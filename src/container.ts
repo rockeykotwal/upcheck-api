@@ -22,6 +22,9 @@ import { WatchlistRepository }  from './modules/watchlist/repositories/Watchlist
 import { WatchlistService }     from './modules/watchlist/services/WatchlistService';
 import { UserRepository }       from './modules/users/repositories/UserRepository';
 import { AlertService }         from './modules/alert/services/AlertService';
+import { PredictionService }    from './modules/ai/services/PredictionService';
+import { PostmortemService }    from './modules/ai/services/PostmortemService';
+import { PostmortemRepository } from './modules/status/repositories/PostmortemRepository';
 import { TOKENS } from './tokens';
 
 // Re-export so existing imports of TOKENS from this file continue to work
@@ -73,5 +76,10 @@ container.registerSingleton(TOKENS.UserRepository, UserRepository);
 
 // ── Alert module ──────────────────────────────────────────────────────────────
 container.registerSingleton(TOKENS.AlertService, AlertService);
+
+// ── AI prediction + postmortem ────────────────────────────────────────────────
+container.registerSingleton(TOKENS.PostmortemRepository, PostmortemRepository);
+container.registerSingleton(TOKENS.PredictionService,    PredictionService);
+container.registerSingleton(TOKENS.PostmortemService,    PostmortemService);
 
 export { container };
