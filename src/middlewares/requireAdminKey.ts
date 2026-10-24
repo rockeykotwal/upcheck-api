@@ -7,9 +7,17 @@ export function requireAdminKey(_req: Request, _res: Response, next: NextFunctio
     return next(new AppError('Admin API is not configured on this server', 503));
   }
 
-  const key = _req.headers['x-admin-key'];
+  const adminKey  = _req.headers['x-admin-key'];
+  const cronToken = _req.headers['authorization'];
 
-  if (!key || key !== config.admin.apiKey) {
+  // Accept X-Admin-Key (manual / cron-job.org)
+  // or Vercel's cron Authorization: Bearer <CRON_SECRET>
+  const validAdminKey  = adminKey === config.admin.apiKey;
+  const validVercelCron =
+    config.cron.secret.length > 0 &&
+    cronToken === `Bearer ${config.cron.secret}`;
+
+  if (!validAdminKey && !validVercelCron) {
     return next(new AppError('Unauthorized', 401));
   }
 

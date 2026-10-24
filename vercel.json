@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/admin/poll?source=vercel-cron",
+      "schedule": "* * * * *"
+    }
+  ]
+}
