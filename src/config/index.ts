@@ -100,9 +100,6 @@ export const config = {
   admin: {
     apiKey: optionalEnv('ADMIN_API_KEY', ''),
   },
-  cron: {
-    secret: optionalEnv('CRON_SECRET', ''),
-  },
   email: {
     provider:    optionalEnv('EMAIL_PROVIDER', 'smtp') as 'smtp' | 'resend' | 'console',
     from:        optionalEnv('EMAIL_FROM', 'noreply@example.com'),
