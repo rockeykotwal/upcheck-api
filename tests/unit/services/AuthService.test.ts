@@ -17,7 +17,7 @@ vi.mock('../../../src/config', () => ({
     redis: { url: 'redis://localhost:6379' },
     jwt:   { secret: 'test-secret-key-minimum-32-characters!!', accessExpiresIn: '15m', refreshExpiresIn: '7d' },
     otel:  { serviceName: 'test', exporterEndpoint: 'http://localhost:4318' },
-    email: { provider: 'smtp', from: 'test@example.com', fromName: 'Test', smtp: { host: 'localhost', port: 1025, secure: false, user: '', pass: '' }, resendApiKey: '' },
+    email: { provider: 'console', from: 'test@example.com', fromName: 'Test', smtp: { host: 'smtp-relay.brevo.com', port: 587, secure: false, user: '', pass: '' }, resendApiKey: '' },
     auth:  { requireEmailVerification: false },
   },
 }));
