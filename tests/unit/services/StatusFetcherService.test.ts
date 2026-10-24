@@ -20,7 +20,10 @@ const baseCompany: Company = {
 };
 
 function makeRepo(companies: Company[]): CompanyRepository {
-  return { findAll: vi.fn().mockResolvedValue(companies) } as unknown as CompanyRepository;
+  return {
+    findAll:        vi.fn().mockResolvedValue(companies),
+    findAllCustom:  vi.fn().mockResolvedValue([]),
+  } as unknown as CompanyRepository;
 }
 
 function makeService(repo: CompanyRepository) {
