@@ -2,23 +2,22 @@
 
 > Know before your users do.
 
-REST API powering [Upcheck](https://github.com/rockeykotwal/upcheck-web) — a real-time status aggregator that tracks whether popular services are up, degraded, or down. Polls 12 major services every 5 minutes, stores a full snapshot history, and exposes it via a clean JSON API with AI-powered incident summaries.
+REST API powering [Upcheck](https://github.com/rockeykotwal/upcheck-web) — a real-time service status aggregator. Polls 51+ services every 60 seconds, stores full snapshot history, sends intelligent email alerts, and generates AI-powered incident summaries and postmortems.
 
 ---
 
 ## How it works
 
 ```
-Cron (every 5 min)
-  └── Fetches each service's Atlassian Statuspage API
-        ├── Writes snapshot → MongoDB (append-only history)
-        └── Updates current status → Redis (5-min TTL cache)
-
-GET /api/status        → reads Redis, falls back to MongoDB
-GET /api/ai/summary/:slug → reads last 20 snapshots, sends to AI provider
+Poller (every 60s — setInterval or external cron)
+  └── Fetches each service's status
+        ├── Statuspage.io API  → for seeded services (GitHub, Stripe, etc.)
+        └── HTTP GET check     → for user-added custom monitors
+              ├── Saves snapshot → MongoDB (append-only history)
+              ├── Alerts watchers if status changed (email)
+              ├── Prediction agent — scores risk, warns watchers if elevated/high
+              └── Postmortem generator — fires on recovery, generates AI summary
 ```
-
-**Tracked services:** GitHub · Stripe · Cloudflare · Discord · Vercel · Twilio · Datadog · Shopify · Netlify · npm · Fastly · PagerDuty
 
 ---
 
@@ -29,42 +28,42 @@ GET /api/ai/summary/:slug → reads last 20 snapshots, sends to AI provider
 | Runtime | Node.js 22, TypeScript 5 |
 | Framework | Express 4 |
 | ORM | Drizzle ORM (node-postgres) |
-| Relational DB | PostgreSQL — company registry |
-| Document DB | MongoDB — snapshot + incident log |
-| Cache | Redis — current status per service (TTL 5 min) |
+| Relational DB | PostgreSQL — users, companies, watchlist |
+| Document DB | MongoDB — snapshots, incident log, postmortems |
+| Cache | Redis — current status per service, dedup keys |
 | DI | tsyringe |
 | Auth | JWT (jose) + argon2 |
 | Validation | class-validator + class-transformer |
-| AI | Ollama · Gemini · OpenAI · Claude (switchable via env) |
+| Email | SMTP (Brevo) or Resend — switchable via env |
+| AI | Gemini · OpenAI · Claude · Ollama (switchable via env) |
 | Docs | Swagger UI at `/docs` |
-| Tests | Vitest |
+| Tests | Vitest (119 tests) |
 
 ---
 
 ## Features
 
-- **Live status polling** — hits Atlassian Statuspage-compatible APIs on a 5-minute cron
-- **Full history** — every snapshot persisted in MongoDB; never overwrites
-- **Redis cache** — current status served from memory, not disk
-- **AI summaries** — ask any AI provider to summarize recent incidents for a service
-- **Pluggable AI** — swap between Ollama, Gemini, OpenAI, or Claude with a single env var
+- **Live status polling** — 60-second interval, 51+ seeded services + user-added custom URLs
+- **Custom monitors** — authenticated users can add any public URL to monitor (HTTP GET check)
+- **Watchlist** — users subscribe to services; alerts fire on status changes
+- **AI incident summaries** — on-demand AI analysis of recent snapshots; 1-click send to all watchers
+- **Prediction agent** — scores escalation/severity patterns after every poll; emails watchers at elevated/high risk
+- **Postmortem generator** — auto-fires on service recovery; generates 3–4 sentence AI postmortem and emails watchers
+- **Pluggable AI** — swap between Gemini, OpenAI, Claude, or Ollama with a single env var
+- **Pluggable email** — Brevo SMTP (recommended, 300/day free) or Resend
+- **Full snapshot history** — every poll persisted in MongoDB; uptime stats (24h, 7d, 30d)
 - **Swagger docs** — full OpenAPI spec at `/docs`
-- **Graceful shutdown** — drains HTTP, DB pool, Redis, and OTel tracing on SIGTERM
+- **Graceful shutdown** — drains HTTP, DB pool, Redis, and OTel on SIGTERM
 
 ---
 
 ## Running locally
 
-### With Docker (recommended)
-
-Requires [Docker Desktop](https://www.docker.com/products/docker-desktop).
-
 ```bash
 git clone https://github.com/rockeykotwal/upcheck-api
 cd upcheck-api
 npm install
-cp .env.example .env
-docker compose up -d postgres redis mongodb mailpit
+cp .env.example .env   # fill in required vars (see below)
 npm run db:migrate
 npm run dev
 ```
@@ -73,49 +72,77 @@ npm run dev
 |---|---|
 | `http://localhost:3000` | API |
 | `http://localhost:3000/docs` | Swagger UI |
-| `http://localhost:8025` | Mailpit (email preview) |
 
-> If you have a local Postgres on port 5432, set `DB_PORT=5433` in `.env` before starting Docker.
-
-### Without Docker
-
-Requires PostgreSQL 16+, Redis 7+, and MongoDB 7+ installed locally.
-
-```bash
-git clone https://github.com/rockeykotwal/upcheck-api
-cd upcheck-api
-npm install
-cp .env.example .env   # set DB_HOST, DB_USER, DB_PASS, REDIS_URL, MONGODB_URI
-createdb upcheck
-npm run db:migrate
-npm run dev
-```
+> Docker Compose is included for running Postgres, Redis, and MongoDB locally if you don't have them installed.
 
 ### AI provider setup
 
-Set `AI_PROVIDER` in `.env` to one of: `ollama` · `gemini` · `openai` · `claude`
+Set `AI_PROVIDER` in `.env` to one of: `gemini` · `openai` · `claude` · `ollama`
 
-For local dev, [Ollama](https://ollama.com) is free:
+For local dev, [Ollama](https://ollama.com) is free and runs fully offline:
 ```bash
 ollama pull llama3.2
-# AI_PROVIDER=ollama in .env — no API key needed
+# set AI_PROVIDER=ollama in .env — no API key needed
 ```
+
+---
+
+## Email setup — Brevo (recommended)
+
+[Brevo](https://brevo.com) offers **300 emails/day free** with no domain required — just an account.
+
+1. Sign up at brevo.com
+2. Go to **SMTP & API → SMTP** tab to get your credentials
+3. Add your sender email under **Senders & IPs → Senders** (Brevo sends a verification email)
+4. Set in `.env`:
+
+```env
+EMAIL_PROVIDER=smtp
+EMAIL_FROM=your-verified-sender@email.com
+EMAIL_FROM_NAME=Upcheck
+SMTP_HOST=smtp-relay.brevo.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your-brevo-login@email.com
+SMTP_PASS=your-brevo-smtp-key
+```
+
+> Alternatively, set `EMAIL_PROVIDER=resend` and provide `RESEND_API_KEY` if you have a verified domain on [Resend](https://resend.com).
+
+---
+
+## Polling on serverless — cron-job.org
+
+The built-in `setInterval` poller runs automatically on any persistent server (Railway, Render, ECS, etc.).
+
+For **Vercel** or other serverless platforms where the process sleeps between requests, use an external cron to trigger polling:
+
+1. Sign up free at [console.cron-job.org](https://console.cron-job.org/jobs)
+2. Create a new job:
+   - **URL:** `https://your-api-domain.com/api/admin/poll`
+   - **Method:** `POST`
+   - **Schedule:** every 1 minute
+   - **Header:** `X-Admin-Key: <your ADMIN_API_KEY>`
+3. Enable the job — done
+
+The endpoint runs the full poll cycle: fetches all services, saves snapshots, fires alerts, runs prediction and postmortem logic.
 
 ---
 
 ## Production deployment
 
-The API is containerised and ships as a single Docker image.
+The API needs a **persistent server** for the built-in poller to run. Recommended options:
 
-```bash
-npm run build
-docker build -t upcheck-api .
-docker run -p 3000:3000 --env-file .env upcheck-api
-```
+| Platform | Free tier | Notes |
+|---|---|---|
+| **Railway** | Hobby $5/mo | Easiest — Docker deploy, env vars in dashboard |
+| **Render** | $7/mo (paid) | Free tier sleeps after inactivity |
+| **Fly.io** | Free (3 VMs) | More setup, genuinely free |
+| **AWS ECS/Fargate** | Pay-per-use | `task-definition.json` included |
 
-For cloud deployment, a `task-definition.json` is included for **AWS ECS/Fargate**. Set all environment variables as ECS task secrets.
+> If deploying to Vercel (serverless), remove the `setInterval` poller and use cron-job.org instead (see above).
 
-Minimum recommended: 0.5 vCPU · 512 MB RAM · Postgres 16 · Redis 7 · MongoDB 7
+Minimum recommended: 0.5 vCPU · 512 MB RAM
 
 ---
 
@@ -126,8 +153,7 @@ Minimum recommended: 0.5 vCPU · 512 MB RAM · Postgres 16 · Redis 7 · MongoDB
 | `npm run dev` | Dev server with watch mode |
 | `npm run build` | Compile TypeScript → `dist/` |
 | `npm run start` | Run compiled build |
-| `npm run test` | Vitest |
-| `npm run test:coverage` | Vitest with coverage |
+| `npm run test` | Vitest (119 tests) |
 | `npm run lint` | ESLint |
 | `npm run db:generate` | Generate Drizzle migration from schema changes |
 | `npm run db:migrate` | Apply pending migrations |
@@ -138,24 +164,29 @@ Minimum recommended: 0.5 vCPU · 512 MB RAM · Postgres 16 · Redis 7 · MongoDB
 
 ## Environment variables
 
-Copy `.env.example` to `.env`. All variables are validated at startup — the server refuses to boot if required vars are missing.
-
 | Variable | Required | Description |
 |---|---|---|
-| `DB_HOST` | Yes | Postgres host |
-| `DB_NAME` | Yes | Postgres database name |
-| `DB_USER` | Yes | Postgres user |
-| `DB_PASS` | Yes | Postgres password |
-| `DB_PORT` | No | Postgres port (default `5432`; use `5433` if Docker conflicts) |
+| `DB_HOST` | Yes | PostgreSQL host |
+| `DB_NAME` | Yes | PostgreSQL database name |
+| `DB_USER` | Yes | PostgreSQL user |
+| `DB_PASS` | Yes | PostgreSQL password |
+| `DB_SSL` | No | `true` for Neon/cloud Postgres |
 | `REDIS_URL` | Yes | Redis connection string |
 | `MONGODB_URI` | Yes | MongoDB connection string |
-| `JWT_SECRET` | Yes | Min 32 chars — generate: `openssl rand -base64 32` |
-| `AI_PROVIDER` | No | `ollama` · `gemini` · `openai` · `claude` (default: `ollama`) |
-| `OLLAMA_BASE_URL` | No | Ollama host (default: `http://localhost:11434`) |
-| `OLLAMA_MODEL` | No | Ollama model (default: `llama3.2`) |
+| `JWT_SECRET` | Yes | Min 32 chars — `openssl rand -base64 32` |
+| `ADMIN_API_KEY` | Yes | Protects `/api/admin/*` routes |
+| `EMAIL_PROVIDER` | No | `smtp` (default) · `resend` · `console` |
+| `EMAIL_FROM` | No | Verified sender email address |
+| `SMTP_HOST` | No | SMTP host (e.g. `smtp-relay.brevo.com`) |
+| `SMTP_PORT` | No | SMTP port (default `587`) |
+| `SMTP_USER` | No | SMTP login |
+| `SMTP_PASS` | No | SMTP password / key |
+| `RESEND_API_KEY` | No | Required if `EMAIL_PROVIDER=resend` |
+| `AI_PROVIDER` | No | `gemini` · `openai` · `claude` · `ollama` (default) |
 | `GEMINI_API_KEY` | No | Required if `AI_PROVIDER=gemini` |
 | `OPENAI_API_KEY` | No | Required if `AI_PROVIDER=openai` |
 | `CLAUDE_API_KEY` | No | Required if `AI_PROVIDER=claude` |
+| `FRONTEND_URL` | No | Frontend origin for CORS + email links |
 
 ---
 
