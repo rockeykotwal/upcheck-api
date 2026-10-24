@@ -3,6 +3,7 @@ import { Router, type Request, type Response, type NextFunction } from 'express'
 import { container } from '../../../container';
 import { TOKENS } from '../../../tokens';
 import { AdminService } from '../services/AdminService';
+import { StatusPollerService } from '../../status/services/StatusPollerService';
 import { requireAdminKey } from '../../../middlewares/requireAdminKey';
 import { AppError } from '../../../errors/AppError';
 import type { CompanyStatus } from '../../status/models/company.schema';
@@ -66,6 +67,17 @@ router.delete('/companies/:slug', async (req: Request, res: Response, next: Next
     const { slug } = req.params as { slug: string };
     await service().deleteCompany(slug);
     res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/admin/poll — trigger a status poll manually (for external cron on serverless)
+router.post('/poll', async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const poller = container.resolve<StatusPollerService>(TOKENS.StatusPollerService);
+    await poller.poll();
+    res.json({ ok: true, polledAt: new Date().toISOString() });
   } catch (err) {
     next(err);
   }
