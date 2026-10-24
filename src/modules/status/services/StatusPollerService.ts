@@ -66,7 +66,7 @@ export class StatusPollerService {
     });
   }
 
-  private async maybePrediction(result: FetchResult, prev: string | null): Promise<void> {
+  private async maybePrediction(result: FetchResult, _prev: string | null): Promise<void> {
     if (!result.status) return;
     const { companyId, slug, indicator } = result.status;
     if (indicator === 'none' || indicator === 'maintenance') return;

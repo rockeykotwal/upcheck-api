@@ -7,6 +7,7 @@
   "include": [
     "src/**/*",
     "tests/**/*",
+    "scripts/**/*",
     "vitest.config.ts",
     "vitest.workspace.ts"
   ],
