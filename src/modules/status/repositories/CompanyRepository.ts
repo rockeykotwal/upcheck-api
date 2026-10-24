@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { injectable, inject } from 'tsyringe';
-import { eq } from 'drizzle-orm';
+import { and, eq, isNotNull } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { TOKENS } from '../../../tokens';
 import { companiesTable } from '../models/company.schema';
@@ -48,6 +48,28 @@ export class CompanyRepository {
     const rows = await this.db
       .delete(companiesTable)
       .where(eq(companiesTable.slug, slug))
+      .returning();
+    return rows.length > 0;
+  }
+
+  async findByUserId(userId: string): Promise<Company[]> {
+    return this.db
+      .select()
+      .from(companiesTable)
+      .where(and(eq(companiesTable.userId, userId), eq(companiesTable.status, 'active')));
+  }
+
+  async findAllCustom(): Promise<Company[]> {
+    return this.db
+      .select()
+      .from(companiesTable)
+      .where(isNotNull(companiesTable.userId));
+  }
+
+  async deleteBySlugAndUser(slug: string, userId: string): Promise<boolean> {
+    const rows = await this.db
+      .delete(companiesTable)
+      .where(and(eq(companiesTable.slug, slug), eq(companiesTable.userId, userId)))
       .returning();
     return rows.length > 0;
   }

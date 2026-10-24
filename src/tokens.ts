@@ -20,4 +20,5 @@ export const TOKENS = {
   PredictionService:     'PredictionService',
   PostmortemService:     'PostmortemService',
   PostmortemRepository:  'PostmortemRepository',
+  MonitorService:        'MonitorService',
 } as const;

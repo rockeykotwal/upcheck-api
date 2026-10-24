@@ -25,6 +25,7 @@ import { AlertService }         from './modules/alert/services/AlertService';
 import { PredictionService }    from './modules/ai/services/PredictionService';
 import { PostmortemService }    from './modules/ai/services/PostmortemService';
 import { PostmortemRepository } from './modules/status/repositories/PostmortemRepository';
+import { MonitorService }       from './modules/status/services/MonitorService';
 import { TOKENS } from './tokens';
 
 // Re-export so existing imports of TOKENS from this file continue to work
@@ -81,5 +82,8 @@ container.registerSingleton(TOKENS.AlertService, AlertService);
 container.registerSingleton(TOKENS.PostmortemRepository, PostmortemRepository);
 container.registerSingleton(TOKENS.PredictionService,    PredictionService);
 container.registerSingleton(TOKENS.PostmortemService,    PostmortemService);
+
+// ── Custom monitors ───────────────────────────────────────────────────────────
+container.registerSingleton(TOKENS.MonitorService, MonitorService);
 
 export { container };

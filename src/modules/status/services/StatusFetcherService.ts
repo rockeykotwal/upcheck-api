@@ -11,21 +11,70 @@ export class StatusFetcherService {
   ) {}
 
   async fetchAll(): Promise<FetchResult[]> {
-    const companies = await this.companies.findAll();
+    const [seeded, custom] = await Promise.all([
+      this.companies.findAll(),
+      this.companies.findAllCustom(),
+    ]);
+
+    // Deduplicate — custom monitor slugs won't overlap with seeded, but be safe
+    const seededSlugs = new Set(seeded.map((c) => c.slug));
+    const all = [...seeded, ...custom.filter((c) => !seededSlugs.has(c.slug))];
 
     const results = await Promise.allSettled(
-      companies.map((c) => this.fetchOne(c.id, c.slug, c.statusPageUrl)),
+      all.map((c) =>
+        c.provider === 'http'
+          ? this.fetchHttp(c.id, c.slug, c.statusPageUrl)
+          : this.fetchOne(c.id, c.slug, c.statusPageUrl),
+      ),
     );
 
     return results.map((r, i) => {
       if (r.status === 'fulfilled') return r.value;
       return {
-        companyId: companies[i]!.id,
-        slug:      companies[i]!.slug,
+        companyId: all[i]!.id,
+        slug:      all[i]!.slug,
         ok:        false,
         error:     r.reason instanceof Error ? r.reason.message : String(r.reason),
       };
     });
+  }
+
+  private async fetchHttp(companyId: string, slug: string, url: string): Promise<FetchResult> {
+    try {
+      const signal = AbortSignal.timeout(8000);
+      const res = await fetch(url, { signal, method: 'GET' });
+
+      let indicator: FetchResult['status'] extends undefined ? never : NonNullable<FetchResult['status']>['indicator'];
+      let description: string;
+
+      if (res.status >= 200 && res.status < 300) {
+        indicator   = 'none';
+        description = 'Operational';
+      } else if (res.status >= 500) {
+        indicator   = 'major';
+        description = `Server error (HTTP ${res.status})`;
+      } else {
+        indicator   = 'minor';
+        description = `Unexpected response (HTTP ${res.status})`;
+      }
+
+      return {
+        companyId, slug, ok: true,
+        status: { companyId, slug, indicator, description, components: [], fetchedAt: new Date() },
+      };
+    } catch (err) {
+      const isTmeout = err instanceof Error && err.name === 'TimeoutError';
+      return {
+        companyId, slug, ok: true,
+        status: {
+          companyId, slug,
+          indicator:   'critical',
+          description: isTmeout ? 'Service unreachable (timeout)' : 'Service unreachable',
+          components:  [],
+          fetchedAt:   new Date(),
+        },
+      };
+    }
   }
 
   private async fetchOne(companyId: string, slug: string, statusPageUrl: string): Promise<FetchResult> {

@@ -16,9 +16,10 @@ import { notFound } from '../middlewares/notFound';
 import { errorHandler } from '../middlewares/errorHandler';
 import { registerRbac }      from '../modules/rbac';
 import { registerWatchlist } from '../modules/watchlist';
-import statusRouter from '../modules/status/controllers/StatusController';
-import aiRouter from '../modules/ai/controllers/AiController';
-import adminRouter from '../modules/admin/controllers/AdminController';
+import statusRouter  from '../modules/status/controllers/StatusController';
+import monitorRouter from '../modules/status/controllers/MonitorController';
+import aiRouter      from '../modules/ai/controllers/AiController';
+import adminRouter   from '../modules/admin/controllers/AdminController';
 
 const swaggerSpec = swaggerJsdoc({
   definition: {
@@ -89,6 +90,9 @@ export function expressLoader(): Application {
 
   // ── AI routes (public) ────────────────────────────────────────────────────
   app.use('/api/ai/summary', aiRouter);
+
+  // ── Custom monitor routes (authenticated) ─────────────────────────────────
+  app.use('/api/monitors', monitorRouter);
 
   // ── Admin routes (X-Admin-Key protected) ──────────────────────────────────
   app.use('/api/admin', adminRouter);

@@ -133,6 +133,32 @@ export class EmailService {
     logger.info('Postmortem email sent', { to: opts.to, company: opts.companyName });
   }
 
+  async sendIncidentSummaryEmail(opts: {
+    to:          string;
+    firstName:   string;
+    companyName: string;
+    indicator:   string;
+    summary:     string;
+    statusUrl:   string;
+  }): Promise<void> {
+    const html = renderTemplate('incident-summary', {
+      appName:     config.app.name,
+      firstName:   opts.firstName,
+      companyName: opts.companyName,
+      indicator:   opts.indicator,
+      summary:     opts.summary,
+      statusUrl:   opts.statusUrl,
+    });
+
+    await this.provider.send({
+      to:      opts.to,
+      subject: `Live incident update: ${opts.companyName} — ${config.app.name}`,
+      html,
+    });
+
+    logger.info('Incident summary email sent', { to: opts.to, company: opts.companyName });
+  }
+
   async sendWelcomeEmail(opts: {
     to:        string;
     firstName: string;
