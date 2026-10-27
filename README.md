@@ -2,14 +2,14 @@
 
 > Know before your users do.
 
-REST API powering [Upcheck](https://github.com/rockeykotwal/upcheck-web) — a real-time service status aggregator. Polls 51+ services every 60 seconds, stores full snapshot history, sends intelligent email alerts, and generates AI-powered incident summaries and postmortems.
+REST API powering [Upcheck](https://github.com/rockeykotwal/upcheck-web) — a real-time service status aggregator. Polls 51+ services on demand via external cron, stores full snapshot history, sends intelligent email alerts, and generates AI-powered incident summaries and postmortems.
 
 ---
 
 ## How it works
 
 ```
-Poller (every 60s — setInterval or external cron)
+External cron → POST /api/admin/poll (X-Admin-Key header)
   └── Fetches each service's status
         ├── Statuspage.io API  → for seeded services (GitHub, Stripe, etc.)
         └── HTTP GET check     → for user-added custom monitors
@@ -43,7 +43,7 @@ Poller (every 60s — setInterval or external cron)
 
 ## Features
 
-- **Live status polling** — 60-second interval, 51+ seeded services + user-added custom URLs
+- **Live status polling** — external cron driven, 51+ seeded services + user-added custom URLs
 - **Custom monitors** — authenticated users can add any public URL to monitor (HTTP GET check)
 - **Watchlist** — users subscribe to services; alerts fire on status changes
 - **AI incident summaries** — on-demand AI analysis of recent snapshots; 1-click send to all watchers
@@ -111,17 +111,15 @@ SMTP_PASS=your-brevo-smtp-key
 
 ---
 
-## Polling on serverless — cron-job.org
+## Polling — cron-job.org
 
-The built-in `setInterval` poller runs automatically on any persistent server (Railway, Render, ECS, etc.).
-
-For **Vercel** or other serverless platforms where the process sleeps between requests, use an external cron to trigger polling:
+Polling is driven entirely by an external cron hitting `POST /api/admin/poll`. There is no built-in `setInterval` — this keeps the server stateless and avoids continuous CPU burn on platforms like Vercel.
 
 1. Sign up free at [console.cron-job.org](https://console.cron-job.org/jobs)
 2. Create a new job:
    - **URL:** `https://your-api-domain.com/api/admin/poll`
    - **Method:** `POST`
-   - **Schedule:** every 1 minute
+   - **Schedule:** every 10 minutes
    - **Header:** `X-Admin-Key: <your ADMIN_API_KEY>`
 3. Enable the job — done
 
@@ -131,16 +129,15 @@ The endpoint runs the full poll cycle: fetches all services, saves snapshots, fi
 
 ## Production deployment
 
-The API needs a **persistent server** for the built-in poller to run. Recommended options:
+Polling is handled externally (cron-job.org), so the API itself is stateless and works on any platform including serverless.
 
 | Platform | Free tier | Notes |
 |---|---|---|
-| **Railway** | Hobby $5/mo | Easiest — Docker deploy, env vars in dashboard |
+| **Vercel** | Free tier | Serverless/Fluid — works fine with external cron |
+| **Railway** | Hobby $5/mo | Easiest persistent deploy — Docker, env vars in dashboard |
 | **Render** | $7/mo (paid) | Free tier sleeps after inactivity |
 | **Fly.io** | Free (3 VMs) | More setup, genuinely free |
 | **AWS ECS/Fargate** | Pay-per-use | `task-definition.json` included |
-
-> If deploying to Vercel (serverless), remove the `setInterval` poller and use cron-job.org instead (see above).
 
 Minimum recommended: 0.5 vCPU · 512 MB RAM
 
