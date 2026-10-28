@@ -33,6 +33,11 @@ export async function mongoLoader(): Promise<void> {
   }
 
   mongo.client = client;
-  mongo.db     = client.db();
+  mongo.db     = client.db(config.mongo.dbName);
   container.registerInstance(TOKENS.MongoDb, mongo.db);
+
+  await mongo.db.collection('status_snapshots').createIndex(
+    { fetchedAt: 1 },
+    { expireAfterSeconds: 48 * 60 * 60 },
+  );
 }
