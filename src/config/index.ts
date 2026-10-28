@@ -63,6 +63,7 @@ export const config = {
   },
   mongo: {
     uri:     requireEnv('MONGODB_URI'),
+    dbName:  optionalEnv('MONGODB_DB_NAME', 'upcheck'),
     poolMin: envInt('MONGODB_POOL_MIN', 2),
     poolMax: envInt('MONGODB_POOL_MAX', 10),
   },

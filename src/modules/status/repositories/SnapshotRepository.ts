@@ -14,8 +14,8 @@ const SNAPSHOT_TTL = 65; // slightly longer than the 60s poll interval
 const UPTIME_KEY = (slug: string) => `uptime:${slug}`;
 const UPTIME_TTL = 300; // 5 minutes — aggregation is expensive, minor drift is fine
 
-function daysAgo(n: number): Date {
-  return new Date(Date.now() - n * 24 * 60 * 60 * 1000);
+function hoursAgo(n: number): Date {
+  return new Date(Date.now() - n * 60 * 60 * 1000);
 }
 
 async function uptimePct(col: ReturnType<Db['collection']>, slug: string, since: Date): Promise<number> {
@@ -82,12 +82,11 @@ export class SnapshotRepository {
     if (cached) return cached;
 
     const col = this.db.collection(COLLECTION);
-    const [h24, d7, d30] = await Promise.all([
-      uptimePct(col, slug, daysAgo(1)),
-      uptimePct(col, slug, daysAgo(7)),
-      uptimePct(col, slug, daysAgo(30)),
+    const [h1, h12] = await Promise.all([
+      uptimePct(col, slug, hoursAgo(1)),
+      uptimePct(col, slug, hoursAgo(12)),
     ]);
-    const stats = { h24, d7, d30 };
+    const stats = { h1, h12 };
     await setCache(UPTIME_KEY(slug), stats, UPTIME_TTL);
     return stats;
   }
