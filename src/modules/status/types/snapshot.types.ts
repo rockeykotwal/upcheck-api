@@ -14,4 +14,5 @@ export interface StatusSnapshot {
 export interface UptimeStats {
   h1:  number;
   h12: number;
+  h24: number;
 }

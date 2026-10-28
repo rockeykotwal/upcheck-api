@@ -63,7 +63,7 @@ export class AiService {
     const current    = history[0]!;
     const statusUrl  = `${config.app.frontendUrl}/status/${slug}`;
 
-    const results = await Promise.allSettled(
+    await Promise.allSettled(
       watchers.map(async (entry) => {
         const user = await this.users.findById(entry.userId);
         if (!user) return;
@@ -78,6 +78,6 @@ export class AiService {
       }),
     );
 
-    return results.filter((r) => r.status === 'fulfilled').length;
+    return watchers.length;
   }
 }

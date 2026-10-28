@@ -82,11 +82,12 @@ export class SnapshotRepository {
     if (cached) return cached;
 
     const col = this.db.collection(COLLECTION);
-    const [h1, h12] = await Promise.all([
+    const [h1, h12, h24] = await Promise.all([
       uptimePct(col, slug, hoursAgo(1)),
       uptimePct(col, slug, hoursAgo(12)),
+      uptimePct(col, slug, hoursAgo(24)),
     ]);
-    const stats = { h1, h12 };
+    const stats = { h1, h12, h24 };
     await setCache(UPTIME_KEY(slug), stats, UPTIME_TTL);
     return stats;
   }
